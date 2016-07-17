@@ -148,9 +148,6 @@ class Dispatcher {
 		this.urlMapMap.put("delete", ad.deleteUrlMap);
 		this.urlMapMap.put("options", ad.optionsUrlMap);
 		
-		/*
-		 * TODO 检查相同的uri有没有匹配不同action 方法
-		 */
 		this.matchersMap.put("get", ad.getUrlMap.keySet().toArray(new UrlMatcher[ad.getUrlMap.size()]));
 		this.matchersMap.put("put", ad.putUrlMap.keySet().toArray(new UrlMatcher[ad.putUrlMap.size()]));
 		this.matchersMap.put("post", ad.postUrlMap.keySet().toArray(new UrlMatcher[ad.postUrlMap.size()]));
@@ -165,7 +162,8 @@ class Dispatcher {
 		if(itset != null){
 			uriInterceptors.addAll(itset);
 		}
-		uriInterceptors.sort(new Comparator<Interceptor>() {	// url拦截器 拦截器排序
+		// url拦截器 拦截器排序
+		uriInterceptors.sort(new Comparator<Interceptor>() {	
 			public int compare(Interceptor i1, Interceptor i2) {
 				InterceptorOrder o1 = i1.getClass().getAnnotation(InterceptorOrder.class);
 				InterceptorOrder o2 = i2.getClass().getAnnotation(InterceptorOrder.class);

@@ -7,8 +7,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import mint.mvc.annotation.BaseMapping;
-import mint.mvc.annotation.Mapping;
+import mint.mvc.annotation.ModuleConfig;
+import mint.mvc.annotation.APIConfig;
 import mint.mvc.annotation.ServiceNames;
 
 /**
@@ -43,18 +43,18 @@ class ActionDetector {
 	 */
 	private void awareActionFromBean(Object actionBean){
 		Class<?> clazz = actionBean.getClass();
-		String 	baseUrl = clazz.getAnnotation(BaseMapping.class).value();
+		String 	baseUrl = clazz.getAnnotation(ModuleConfig.class).url();
 
 		/*一个url匹配器和一个action组成键值对*/
 		/*"UrlMatcher=>Action" key-value*/
 		Method[]	methods 	= clazz.getMethods();
-		Mapping		mapping		= null;
+		APIConfig		mapping		= null;
 		String[]	urls 		= null;
 		
 		
 		for (Method method : methods) {
 			if (isActionMethod(method)) {
-				mapping = method.getAnnotation(Mapping.class);
+				mapping = method.getAnnotation(APIConfig.class);
 				urls = mapping.urls();
 				ServiceNames service;
 				for(String url : urls){
@@ -127,7 +127,7 @@ class ActionDetector {
 		}
 		
 		/*没有Mapping 注解的不是action方法*/
-		Mapping mapping = method.getAnnotation(Mapping.class);
+		APIConfig mapping = method.getAnnotation(APIConfig.class);
 		if (mapping == null) {
 			return false;
 		}

@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import mint.mvc.annotation.BaseMapping;
+import mint.mvc.annotation.ModuleConfig;
 import mint.mvc.annotation.InterceptorMapping;
 import mint.mvc.annotation.ServiceName;
 import mint.mvc.util.ClassScaner;
@@ -22,7 +22,7 @@ class ComponentScaner {
 	private Logger logger = Logger.getLogger(ComponentScaner.class.getName());
 	
 	Set<Class<?>> interceptorClasses;
-	Set<Class<?>> actionClasses;
+	Set<Class<?>> moduleClass;
 	Set<Class<?>> serviceClasses;
 	
 	/**
@@ -32,7 +32,7 @@ class ComponentScaner {
 	ComponentScaner(Config config){
 		ClassScaner sc = new ClassScaner(config.getClass().getClassLoader());
 		
-		String param = config.getInitParameter("actionPackages");
+		String param = config.getInitParameter("componentPackages");
 		
 		if(param != null && !param.equals("")) {
 			Set<String> componentNames = new HashSet<String>();
@@ -44,16 +44,16 @@ class ComponentScaner {
 			Class<?> clazz;
 			
 			interceptorClasses =  new HashSet<Class<?>>();
-			actionClasses = new HashSet<Class<?>>();
+			moduleClass = new HashSet<Class<?>>();
 			serviceClasses = new HashSet<Class<?>>();
 			
 			for(String clsName : componentNames){
 				try {
 					clazz = Class.forName(clsName, false, this.getClass().getClassLoader()); //避免static语句执行所发生的错误
 					
-					if(clazz.getAnnotation(BaseMapping.class) != null){
+					if(clazz.getAnnotation(ModuleConfig.class) != null){
 						//识别action
-						actionClasses.add(clazz);
+						moduleClass.add(clazz);
 						logger.info("discover a action->"+clsName);
 					} else if(clazz.getAnnotation(InterceptorMapping.class) != null){
 						//识别拦截器
@@ -142,7 +142,7 @@ class ComponentScaner {
 	Set<Object> getActionBeans(){
 		if(interceptorClasses!=null){
 			Set<Object> actions = new HashSet<Object>();
-			for(Class<?> cls : actionClasses){
+			for(Class<?> cls : moduleClass){
 				try {
 					actions.add(cls.newInstance());
 				} catch (InstantiationException | IllegalAccessException e) {

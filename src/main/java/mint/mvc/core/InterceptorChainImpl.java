@@ -11,13 +11,17 @@ class InterceptorChainImpl implements InterceptorChain {
     private int 	index 	= 0;
     private boolean isPass 	= false;
     private	int size;
+    private ModuleConfig module;
+    private APIConfig api;
     
     boolean isPass() {
         return isPass;
     }
     
-    InterceptorChainImpl(List<Interceptor> interceptors) {
+    InterceptorChainImpl(List<Interceptor> interceptors, ModuleConfig module, APIConfig api) {
     	this.interceptors = interceptors;
+    	this.api = api;
+    	this.module = module;
     	size = this.interceptors.size();
     }
 
@@ -27,7 +31,7 @@ class InterceptorChainImpl implements InterceptorChain {
         } else {
             //must update index first, otherwise will cause stack overflow:
             index++;
-            interceptors.get(index-1).intercept(ctx, this);
+            interceptors.get(index-1).intercept(ctx, module, api, this);
         }
     }
 }

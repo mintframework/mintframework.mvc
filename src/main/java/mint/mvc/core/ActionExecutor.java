@@ -76,21 +76,21 @@ class ActionExecutor {
 	
 	/**
 	 * 调用action方法
-	 * @param actionConfig
+	 * @param apiContext
 	 * @param arguments
 	 * @return
 	 * @throws Exception
 	 */
-	Object executeActionMethod(ActionConfig actionConfig, Object[] arguments) throws Exception {
+	Object executeActionMethod(ApiContext apiContext, Object[] arguments) throws Exception {
 		//@Required 注解标注的参数不能为空
-		for(int i=actionConfig.requires.length-1; i>-1; i--){
-			if(actionConfig.requires[i] && arguments[i]==null){
+		for(int i=apiContext.requires.length-1; i>-1; i--){
+			if(apiContext.requires[i] && arguments[i]==null){
 				return new ErrorRender(403);
 			}
 		}
 		
 		try {
-			return actionConfig.actionMethod.invoke(actionConfig.instance, arguments);
+			return apiContext.actionMethod.invoke(apiContext.instance, arguments);
 		} catch (InvocationTargetException e) {
 			Throwable t = e.getCause();
 			if (t != null && t instanceof Exception){
@@ -128,7 +128,7 @@ class ActionExecutor {
 		/* apply interceptor chain */
 		InterceptorChainImpl interceptorChain = null;
 		if(action.interceptors!=null){
-			interceptorChain = new InterceptorChainImpl(action.interceptors);
+			interceptorChain = new InterceptorChainImpl(action.interceptors, action.actionConfig.module, action.actionConfig.api);
 			try {
 				interceptorChain.doInterceptor(ActionContext.getActionContext());
 			} catch (Exception e) {
@@ -140,7 +140,7 @@ class ActionExecutor {
 		//apply service chain
 		ServiceChainImpl serviceChain = null;
 		if(action.services!=null && (interceptorChain==null || interceptorChain.isPass())){
-			serviceChain = new ServiceChainImpl(action.services);
+			serviceChain = new ServiceChainImpl(action.services, action.actionConfig.module, action.actionConfig.api);
 			try {
 				serviceChain.doService(ActionContext.getActionContext());
 			} catch (Exception e) {
@@ -196,7 +196,7 @@ class ActionExecutor {
 	 * @param matcher
 	 */
 	private Object[] initArguments(HttpServletRequest req, HttpServletResponse resp, Action action) {
-		ActionConfig actionConfig = action.actionConfig;
+		ApiContext actionConfig = action.actionConfig;
 		
 		Object[] arguments = new Object[actionConfig.argumentTypes.length];
 
@@ -354,7 +354,7 @@ class ActionExecutor {
 	/**
 	 *  处理action返回的结果。当方法出现异常时，处理异常
 	 */
-	private void handleResult(HttpServletRequest request, HttpServletResponse response, Object result, ActionConfig actionConfig) throws Exception {
+	private void handleResult(HttpServletRequest request, HttpServletResponse response, Object result, ApiContext actionConfig) throws Exception {
 		if (result == null) {
 			return;
 		}

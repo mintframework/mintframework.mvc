@@ -6,41 +6,38 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 
  * Method annotation for mapping URL.<br/>
  * For example:<br/>
  * <pre>
  * public class Blog {
- *     &#064;Mapping("/")
+ *     &#064;APIConfig("/")
  *     public String index() {
  *         // handle index page...
  *     }
  * 
- *     &#064;Mapping("/blog/$1")
+ *     &#064;Mapping("/blog/{id}")
  *     public String show(int id) {
  *         // show blog with id...
  *     }
  * 
- *     &#064;Mapping("/blog/edit/$1")
+ *     &#064;Mapping("/blog/edit/{id}")
  *     public void edit(int id) {
  *         // edit blog with id...
  *     }
  * }
  * </pre>
+ * 
  * @author LiangWei(895925636@qq.com)
- * @author Michael Liao (askxuefeng@gmail.com)
- * @date 2015年3月13日 下午9:24:42 
+ * @date 2015年3月13日 下午9:22:32 
  *
  */
-@Target({ElementType.METHOD})
+@Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface APIConfig {
-	String[] 	urls()		default "";
-	String[] 	method()	default "";
-	String 		protocol()	default "http";
-
-	String 		desc()		default "";
-	String 		id()		default "";
-	String[] 	tags()		default "";
-	String 		name()		default "";
+public @interface Module {
+	String		url();
+	
+	String		desc()		default "";
+	String		id()		default "";
+	String[]	tags()		default "";
+	String		name()		default "";
 }

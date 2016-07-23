@@ -3,13 +3,16 @@ package mint.mvc.core;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import mint.mvc.annotation.ModuleConfig;
-import mint.mvc.annotation.APIConfig;
+import mint.mvc.annotation.API;
+import mint.mvc.annotation.Module;
 import mint.mvc.annotation.ServiceNames;
+import mint.mvc.util.GetArgumentName;
 
 /**
  * action 探测器。用来从指定实体中找到多有的action实体，并找到所有的action 方法（带Mapping）的方法
@@ -18,12 +21,14 @@ import mint.mvc.annotation.ServiceNames;
  */
 class ActionDetector {
 	private Logger log = Logger.getLogger(this.getClass().getName());
-	protected Map<UrlMatcher, ActionConfig> getUrlMap 	= new HashMap<UrlMatcher, ActionConfig>();
-	protected Map<UrlMatcher, ActionConfig> putUrlMap 	= new HashMap<UrlMatcher, ActionConfig>();
-	protected Map<UrlMatcher, ActionConfig> postUrlMap 	= new HashMap<UrlMatcher, ActionConfig>();
-	protected Map<UrlMatcher, ActionConfig> headUrlMap 	= new HashMap<UrlMatcher, ActionConfig>();
-	protected Map<UrlMatcher, ActionConfig> deleteUrlMap 	= new HashMap<UrlMatcher, ActionConfig>();
-	protected Map<UrlMatcher, ActionConfig> optionsUrlMap 	= new HashMap<UrlMatcher, ActionConfig>();
+	protected Map<UrlMatcher, ApiContext> getUrlMap 	= new HashMap<UrlMatcher, ApiContext>();
+	protected Map<UrlMatcher, ApiContext> putUrlMap 	= new HashMap<UrlMatcher, ApiContext>();
+	protected Map<UrlMatcher, ApiContext> postUrlMap 	= new HashMap<UrlMatcher, ApiContext>();
+	protected Map<UrlMatcher, ApiContext> headUrlMap 	= new HashMap<UrlMatcher, ApiContext>();
+	protected Map<UrlMatcher, ApiContext> deleteUrlMap 	= new HashMap<UrlMatcher, ApiContext>();
+	protected Map<UrlMatcher, ApiContext> optionsUrlMap 	= new HashMap<UrlMatcher, ApiContext>();
+	
+	protected Set<ModuleConfig> modules = new HashSet<ModuleConfig>();
 	
 	/**
 	 * find out action methods from given beans.
@@ -32,44 +37,62 @@ class ActionDetector {
 	 */
 	void awareActionMethodFromBeans(Set<Object> beans) {
 		for(Object bean : beans){
-			awareActionFromBean(bean);
+			awareAPIFromBean(bean);
 		}
 	}
 
 	/**
 	 * find out action methods from single bean.
-	 * @param actionBean
+	 * @param moduleBean
 	 * @return
 	 */
-	private void awareActionFromBean(Object actionBean){
-		Class<?> clazz = actionBean.getClass();
-		String 	baseUrl = clazz.getAnnotation(ModuleConfig.class).url();
+	private void awareAPIFromBean(Object moduleBean){
+		Class<?> clazz = moduleBean.getClass();
+		Module mconfig = clazz.getAnnotation(Module.class);
+		String 	baseUrl = mconfig.url();
 
 		/*一个url匹配器和一个action组成键值对*/
-		/*"UrlMatcher=>Action" key-value*/
-		Method[]	methods 	= clazz.getMethods();
-		APIConfig		mapping		= null;
+		/*"UrlMatcher=>API" key-value*/
+		Method[]	apiMethods 	= clazz.getMethods();
+		API	apiConfig	= null;
 		String[]	urls 		= null;
 		
+		Set<APIConfig> apis = new HashSet<APIConfig>();
+		ModuleConfig module = new ModuleConfig(mconfig.url(), mconfig.id(), mconfig.name(), mconfig.desc(), mconfig.tags(), apis);
+		modules.add(module);
 		
-		for (Method method : methods) {
-			if (isActionMethod(method)) {
-				mapping = method.getAnnotation(APIConfig.class);
-				urls = mapping.urls();
+		for (Method apiMethod : apiMethods) {
+			if (isActionMethod(apiMethod)) {
+				apiConfig = apiMethod.getAnnotation(API.class);
+				urls = apiConfig.urls();
 				ServiceNames service;
 				for(String url : urls){
 					url = baseUrl + url;
 					
-					UrlMatcher 	matcher = new UrlMatcher(url, method);
-					/*如果pattern为空，则说明该action方法无法被访问到*/
+					UrlMatcher 	matcher = new UrlMatcher(url, apiMethod);
+					/*如果pattern为空，则说明该api方法无法被访问到*/
 					if(matcher.pattern != null){
-						log.info("Mapping url '" + url + "' to method '" + method.toGenericString() + "'.");
-						service = method.getAnnotation(ServiceNames.class);
+						log.info("Mapping url '" + url + "' to method '" + apiMethod.toGenericString() + "'.");
+						service = apiMethod.getAnnotation(ServiceNames.class);
+						List<String> argNames = GetArgumentName.getArgumentNames(apiMethod);
+						
+						APIConfig api = new APIConfig(
+							apiConfig.urls(), 
+							apiConfig.id(), 
+							apiConfig.name(), 
+							apiConfig.method(), 
+							apiConfig.protocol(), 
+							apiConfig.desc(), 
+							apiConfig.tags(),
+							apiMethod.getParameterTypes(),
+							argNames.toArray(new String[argNames.size()]));
+						
+						apis.add(api);
 						
 						if(service!=null){
-							addAction(matcher, new ActionConfig(actionBean, method, matcher.urlArgumentOrder, service.value()), mapping.method());
+							addApi(matcher, new ApiContext(moduleBean, apiMethod, argNames, matcher.urlArgumentOrder, service.value(), module, api), apiConfig.method());
 						} else {
-							addAction(matcher, new ActionConfig(actionBean, method, matcher.urlArgumentOrder, null), mapping.method());
+							addApi(matcher, new ApiContext(moduleBean, apiMethod, argNames, matcher.urlArgumentOrder, null, module, api), apiConfig.method());
 						}
 					}
 				}
@@ -82,10 +105,8 @@ class ActionDetector {
 	 * @param action
 	 * @param method
 	 */
-	private void addAction(UrlMatcher matcher, ActionConfig action, String[] methods){
-		
-		
-		for(String method : methods){
+	private void addApi(UrlMatcher matcher, ApiContext action, String[] methods){
+ 		for(String method : methods){
 			method = method.toLowerCase();
 		
 			if("".equals(method)){
@@ -127,7 +148,7 @@ class ActionDetector {
 		}
 		
 		/*没有Mapping 注解的不是action方法*/
-		APIConfig mapping = method.getAnnotation(APIConfig.class);
+		API mapping = method.getAnnotation(API.class);
 		if (mapping == null) {
 			return false;
 		}

@@ -25,7 +25,7 @@ import mint.mvc.annotation.InterceptorOrder;
  */
 class Dispatcher {
 	private Logger log = Logger.getLogger(this.getClass().getName());
-	private Map<String, Map<UrlMatcher, ActionConfig>> urlMapMap = new HashMap<String, Map<UrlMatcher, ActionConfig>>();
+	private Map<String, Map<UrlMatcher, ApiContext>> urlMapMap = new HashMap<String, Map<UrlMatcher, ApiContext>>();
 	private Map<String, UrlMatcher[]> matchersMap = new HashMap<String, UrlMatcher[]>();
 	
 	/**
@@ -76,7 +76,7 @@ class Dispatcher {
 			request.setCharacterEncoding("UTF-8");
 		}
 
-		ActionConfig 	actionConfig	= null;
+		ApiContext 	actionConfig	= null;
 		String[] 		urlArgs 		= null;
 		
 		
@@ -179,6 +179,25 @@ class Dispatcher {
 		
 		//初始化service拦截器
 		servicesMap = componentScaner.getServiceBeans();
+		
+		
+		//初始化组件报告器
+		String cr = config.getInitParameter("componentReportor");
+		if(cr!=null && !"".equals(cr.trim())){
+			try {
+				Class<?> clazz = Class.forName(cr, false, this.getClass().getClassLoader());
+				
+				if(ComponentReportor.class.isAssignableFrom(clazz)){
+					ComponentReportor componentReportor = (ComponentReportor) clazz.newInstance();
+					componentReportor.report(ad.modules, null, null);
+				}
+				
+			} catch (ClassNotFoundException e) {
+				log.warning("componentReportor class("+ cr +") do not be found");
+			} catch (InstantiationException | IllegalAccessException e) {
+				log.warning("componentReportor class("+ cr +") can not be instance");
+			}
+		}
 	}
 	
 	void destroy() {

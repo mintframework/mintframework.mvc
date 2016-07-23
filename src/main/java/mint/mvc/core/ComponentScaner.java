@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import mint.mvc.annotation.ModuleConfig;
+import mint.mvc.annotation.Module;
 import mint.mvc.annotation.InterceptorMapping;
 import mint.mvc.annotation.ServiceName;
 import mint.mvc.util.ClassScaner;
@@ -51,7 +51,7 @@ class ComponentScaner {
 				try {
 					clazz = Class.forName(clsName, false, this.getClass().getClassLoader()); //避免static语句执行所发生的错误
 					
-					if(clazz.getAnnotation(ModuleConfig.class) != null){
+					if(clazz.getAnnotation(Module.class) != null){
 						//识别action
 						moduleClass.add(clazz);
 						logger.info("discover a action->"+clsName);

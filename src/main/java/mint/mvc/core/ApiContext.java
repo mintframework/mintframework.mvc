@@ -16,7 +16,6 @@ import javax.servlet.http.HttpSession;
 
 import mint.mvc.annotation.MultipartConfig;
 import mint.mvc.annotation.Required;
-import mint.mvc.util.GetArgumentName;
 
 /**
  * Internal class which holds object instance, method and arguments' types.
@@ -24,8 +23,8 @@ import mint.mvc.util.GetArgumentName;
  * @author Michael Liao (askxuefeng@gmail.com)
  * @author LW
  */
-class ActionConfig {
-	static Logger logger = Logger.getLogger(ActionConfig.class.getName());
+class ApiContext {
+	static Logger logger = Logger.getLogger(ApiContext.class.getName());
 	
 	/**
 	 * 声明的内置变量
@@ -64,6 +63,10 @@ class ActionConfig {
 	
 	final String[] serviceNames;
 	
+	final ModuleConfig module;
+	
+	final APIConfig api;
+	
 	/**
 	 * 参数注射器
 	 */
@@ -71,15 +74,17 @@ class ActionConfig {
 	
 	List<BuildInArgumentInfo> builtInArguments = null;
 
-	ActionConfig(Object instance, Method actionMethod, int[] urlArgumentOrder, String[] serviceNames) {
+	ApiContext(Object instance, Method apiMethod, List<String> argumentNames, int[] urlArgumentOrder, String[] serviceNames, ModuleConfig module, APIConfig api) {
 		this.instance 		= instance;
-		this.actionMethod 	= actionMethod;
-		this.argumentTypes 	= actionMethod.getParameterTypes();
-		this.argumentNames	= GetArgumentName.getArgumentNames(actionMethod);
+		this.actionMethod 	= apiMethod;
+		this.argumentTypes 	= apiMethod.getParameterTypes();
+		this.argumentNames	= argumentNames;
 		this.urlArgumentOrder = urlArgumentOrder;
 		this.serviceNames = serviceNames;
+		this.module = module;
+		this.api = api;
 		
-		Annotation[][] ans = actionMethod.getParameterAnnotations();
+		Annotation[][] ans = apiMethod.getParameterAnnotations();
 		this.requires = new boolean[argumentTypes.length];
 		
 		for(int i=0; i<ans.length; i++){
@@ -93,17 +98,17 @@ class ActionConfig {
 			}
 		}
 		
-		if(actionMethod.getAnnotation(MultipartConfig.class) != null){
-			multipartConfig = actionMethod.getAnnotation(MultipartConfig.class);
+		if(apiMethod.getAnnotation(MultipartConfig.class) != null){
+			multipartConfig = apiMethod.getAnnotation(MultipartConfig.class);
 			boolean is = true;
 			if("".equals(multipartConfig.attributeName())){
 			is = false;
-			logger.warning(actionMethod.getName() + ":多媒体请求没有配置 attributeName");
+			logger.warning(apiMethod.getName() + ":多媒体请求没有配置 attributeName");
 		}
 		
 		if(multipartConfig.limitSize() <= 0){
 			is = false;
-				logger.warning(actionMethod.getName() + ":多媒体请求没有配置 正确的limitSize");
+				logger.warning(apiMethod.getName() + ":多媒体请求没有配置 正确的limitSize");
 			}
 			
 			this.isMultipartAction = is;

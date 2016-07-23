@@ -81,5 +81,5 @@ public abstract class Interceptor {
 	 * @param chain Interceptor chain.
 	 * @throws Exception If any exception is thrown, process will not continued.
 	 */
-	public abstract void intercept(ActionContext ctx, InterceptorChain chain) throws Exception;
+	public abstract void intercept(ActionContext ctx, ModuleConfig module, APIConfig api, InterceptorChain chain) throws Exception;
 }

@@ -14,4 +14,9 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ServiceName {
 	String value();
+	
+	String 		desc()		default "";
+	String 		id()		default "";
+	String[] 	tags()		default "";
+	String 		name()		default "";
 }

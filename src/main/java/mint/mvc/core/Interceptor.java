@@ -4,7 +4,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import mint.mvc.annotation.InterceptorMapping;
+import mint.mvc.annotation.InterceptorConfig;
 
 
 /**
@@ -30,7 +30,7 @@ public abstract class Interceptor {
 	 * @return
 	 */
 	boolean initMatcher(){
-		InterceptorMapping intemap = this.getClass().getAnnotation(InterceptorMapping.class);
+		InterceptorConfig intemap = this.getClass().getAnnotation(InterceptorConfig.class);
 		
 		if(intemap != null){
 			String[] urlPattern = intemap.urls();

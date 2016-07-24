@@ -1,16 +1,16 @@
 package mint.mvc.core;
 
-import mint.mvc.annotation.ServiceName;
+import mint.mvc.annotation.ServiceConfig;
 
 public abstract class Service {
 	boolean initService(){
-		ServiceName si = this.getClass().getAnnotation(ServiceName.class);
+		ServiceConfig si = this.getClass().getAnnotation(ServiceConfig.class);
 		
 		if(si == null){
 			return false;
 		}
 		
-		String name = si.value();
+		String name = si.name();
 		if("".equals(name.trim())){
 			return false;
 		}

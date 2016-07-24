@@ -12,11 +12,10 @@ import java.lang.annotation.Target;
  */
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ServiceName {
-	String value();
+public @interface ServiceConfig {
+	String name();
 	
 	String 		desc()		default "";
 	String 		id()		default "";
 	String[] 	tags()		default "";
-	String 		name()		default "";
 }

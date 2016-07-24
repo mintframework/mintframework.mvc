@@ -7,8 +7,8 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import mint.mvc.annotation.Module;
-import mint.mvc.annotation.InterceptorMapping;
-import mint.mvc.annotation.ServiceName;
+import mint.mvc.annotation.InterceptorConfig;
+import mint.mvc.annotation.ServiceConfig;
 import mint.mvc.util.ClassScaner;
 
 /**
@@ -21,14 +21,17 @@ import mint.mvc.util.ClassScaner;
 class ComponentScaner {
 	private Logger logger = Logger.getLogger(ComponentScaner.class.getName());
 	
-	Set<Class<?>> interceptorClasses;
+	Set<Class<Interceptor>> interceptorClasses;
 	Set<Class<?>> moduleClass;
-	Set<Class<?>> serviceClasses;
+	Set<Class<Service>> serviceClasses;
+	Set<ServiceConfig> services;
+	Set<InterceptorConfig> interceptors;
 	
 	/**
 	 * 根据web.xml配置的"actionPackages"启动参数，自动扫描出action、interceptor和service
 	 * @param config
 	 */
+	@SuppressWarnings("unchecked")
 	ComponentScaner(Config config){
 		ClassScaner sc = new ClassScaner(config.getClass().getClassLoader());
 		
@@ -43,9 +46,9 @@ class ComponentScaner {
 			
 			Class<?> clazz;
 			
-			interceptorClasses =  new HashSet<Class<?>>();
+			interceptorClasses =  new HashSet<Class<Interceptor>>();
 			moduleClass = new HashSet<Class<?>>();
-			serviceClasses = new HashSet<Class<?>>();
+			serviceClasses = new HashSet<Class<Service>>();
 			
 			for(String clsName : componentNames){
 				try {
@@ -55,20 +58,20 @@ class ComponentScaner {
 						//识别action
 						moduleClass.add(clazz);
 						logger.info("discover a action->"+clsName);
-					} else if(clazz.getAnnotation(InterceptorMapping.class) != null){
+					} else if(clazz.getAnnotation(InterceptorConfig.class) != null){
 						//识别拦截器
 						for(Class<?> parent = clazz.getSuperclass(); parent != null; parent = parent.getSuperclass()){
 							if(parent.equals(Interceptor.class)){
-								interceptorClasses.add(clazz);
+								interceptorClasses.add((Class<Interceptor>)clazz);
 								logger.info("discover a interceptor->"+clsName);
 								break;
 							}
 						}
-					} else if(clazz.getAnnotation(ServiceName.class) != null){
+					} else if(clazz.getAnnotation(ServiceConfig.class) != null){
 						//识别服务
 						for(Class<?> parent = clazz.getSuperclass(); parent != null; parent = parent.getSuperclass()){
 							if(parent.equals(Service.class)){
-								serviceClasses.add(clazz);
+								serviceClasses.add((Class<Service>)clazz);
 								logger.info("discover a service->"+clsName);
 								break;
 							}
@@ -116,7 +119,7 @@ class ComponentScaner {
 			Service sis = null;
 			String name;
 			for(Class<?> cls : serviceClasses){
-				name = cls.getAnnotation(ServiceName.class).value().trim();
+				name = cls.getAnnotation(ServiceConfig.class).name().trim();
 				
 				if(!"".equals(name)){
 					try {
@@ -150,6 +153,38 @@ class ComponentScaner {
 				}
 			}
 			return actions;
+		} else {
+			return null;
+		}
+	}
+	
+	/**
+	 * 获取service的注解配置
+	 * @return
+	 */
+	Set<ServiceConfig> getServiceConfigs(){
+		if(serviceClasses.size()>0){
+			services = new HashSet<ServiceConfig>();
+			for(Class<Service> s: serviceClasses){
+				services.add(s.getAnnotation(ServiceConfig.class));
+			}
+			return services;
+		} else {
+			return null;
+		}
+	}
+	
+	/**
+	 * 获取inteceptor的注解配置
+	 * @return
+	 */
+	Set<InterceptorConfig> getInterceptorConfig(){
+		if(serviceClasses.size()>0){
+			interceptors = new HashSet<InterceptorConfig>();
+			for(Class<Interceptor> s : interceptorClasses){
+				interceptors.add(s.getAnnotation(InterceptorConfig.class));
+			}
+			return interceptors;
 		} else {
 			return null;
 		}

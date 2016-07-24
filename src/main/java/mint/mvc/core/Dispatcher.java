@@ -180,7 +180,6 @@ class Dispatcher {
 		//初始化service拦截器
 		servicesMap = componentScaner.getServiceBeans();
 		
-		
 		//初始化组件报告器
 		String cr = config.getInitParameter("componentReportor");
 		if(cr!=null && !"".equals(cr.trim())){
@@ -189,7 +188,7 @@ class Dispatcher {
 				
 				if(ComponentReportor.class.isAssignableFrom(clazz)){
 					ComponentReportor componentReportor = (ComponentReportor) clazz.newInstance();
-					componentReportor.report(ad.modules, null, null);
+					componentReportor.report(ad.modules, componentScaner.getServiceConfigs(), componentScaner.getInterceptorConfig());
 				}
 				
 			} catch (ClassNotFoundException e) {

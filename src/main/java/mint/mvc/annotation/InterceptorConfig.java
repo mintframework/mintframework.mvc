@@ -23,11 +23,10 @@ import java.lang.annotation.Target;
  */
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface InterceptorMapping {
+public @interface InterceptorConfig {
     String[] urls();
     
     String 		desc()		default "";
 	String 		id()		default "";
 	String[] 	tags()		default "";
-	String 		name()		default "";
 }

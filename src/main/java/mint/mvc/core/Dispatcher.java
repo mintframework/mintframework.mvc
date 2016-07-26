@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 
-import mint.mvc.annotation.InterceptorOrder;
+import mint.mvc.annotation.InterceptorConfig;
 
 /**
  * Dispatcher handles ALL requests from clients, and dispatches to appropriate
@@ -33,8 +33,6 @@ class Dispatcher {
 	 */
 	private List<Interceptor>		uriInterceptors = new ArrayList<Interceptor>();
 	private Map<String, Service> 	servicesMap = new HashMap<String, Service>();
-	
-	
 	
 	void init(Config config) throws ServletException {
 		log.info("Init Dispatcher...");
@@ -165,10 +163,10 @@ class Dispatcher {
 		// url拦截器 拦截器排序
 		uriInterceptors.sort(new Comparator<Interceptor>() {	
 			public int compare(Interceptor i1, Interceptor i2) {
-				InterceptorOrder o1 = i1.getClass().getAnnotation(InterceptorOrder.class);
-				InterceptorOrder o2 = i2.getClass().getAnnotation(InterceptorOrder.class);
-				int n1 = o1 == null ? Integer.MAX_VALUE : o1.value();
-				int n2 = o2 == null ? Integer.MAX_VALUE : o2.value();
+				InterceptorConfig o1 = i1.getClass().getAnnotation(InterceptorConfig.class);
+				InterceptorConfig o2 = i2.getClass().getAnnotation(InterceptorConfig.class);
+				int n1 = o1 == null ? Integer.MAX_VALUE : o1.order();
+				int n2 = o2 == null ? Integer.MAX_VALUE : o2.order();
 				
 				if (n1 == n2) {
 					return i1.getClass().getName().compareTo(i2.getClass().getName());

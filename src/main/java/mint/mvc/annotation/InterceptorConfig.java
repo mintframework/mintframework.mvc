@@ -24,7 +24,8 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface InterceptorConfig {
-    String[] urls();
+    String[] 	urls();
+    int			order()		default 0;
     
     String 		desc()		default "";
 	String 		id()		default "";

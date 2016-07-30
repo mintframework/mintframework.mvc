@@ -176,7 +176,7 @@ class ActionExecutor {
 					handleException(request, response, e);
 				}
 			} else {
-				((HttpServletResponse) request).sendError(HttpServletResponse.SC_NOT_FOUND);
+				response.sendError(HttpServletResponse.SC_NOT_FOUND);
 			}
 		}
 	}

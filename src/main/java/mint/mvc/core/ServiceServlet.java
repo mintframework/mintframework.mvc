@@ -71,24 +71,25 @@ public class ServiceServlet extends HttpServlet {
 	 */
 	@Override
 	public void service(ServletRequest req, ServletResponse resp) throws ServletException, IOException {
-		final HttpServletRequest 	httpReq 	= (HttpServletRequest) req;
-		final HttpServletResponse httpResp 	= (HttpServletResponse) resp;
-		String 				method 		= httpReq.getMethod().toLowerCase();
+		final HttpServletRequest 	httpReq		= (HttpServletRequest) req;
+		final HttpServletResponse 	httpResp 	= (HttpServletResponse) resp;
+		String						method		= httpReq.getMethod().toLowerCase();
 		
 		/*进入处理请求*/
 		final Action action = dispatcher.dispatch(httpReq, method);
 		if (action != null) {
 			final AsyncContext asyncContext = httpReq.startAsync();
+			
 			/*内置baseUrl*/
-	    	StringBuilder baseUrl = new StringBuilder(255);
-	    	baseUrl.append(httpReq.getScheme()).append("://").append(httpReq.getServerName()).append(":").append(httpReq.getServerPort());
-	    	String contextPath = httpReq.getContextPath();
-	    	
-	    	if(contextPath != null){
-	    		baseUrl.append(contextPath).append("/");
-	    	}
-	    	
-	    	httpReq.setAttribute("baseUrl", baseUrl);
+			StringBuilder baseUrl = new StringBuilder(255);
+			baseUrl.append(httpReq.getScheme()).append("://").append(httpReq.getServerName()).append(":").append(httpReq.getServerPort());
+			String contextPath = httpReq.getContextPath();
+			
+			if(contextPath != null){
+				baseUrl.append(contextPath).append("/");
+			}
+			
+			httpReq.setAttribute("baseUrl", baseUrl);
 			
 			/*// 添加监听器监听异步的执行结果
 			asyncContext.addListener(new AsyncListener() {

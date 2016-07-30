@@ -104,23 +104,25 @@ class ActionExecutor {
 		ActionContext.setActionContext(servletContext, request, response);
 		
 		/*处理上传请求*/
-		String contentType = request.getContentType();
-		if(contentType != null && contentType.indexOf("multipart/form-data") >= 0){
-			/*避免“上传任意文件”*/
-			if(action.actionConfig.isMultipartAction){
-				MultipartConfig multipartConfig = action.actionConfig.multipartConfig;
-				
-				if(multipartConfig.maxRequestSize() <= 0 || (request.getContentLength() < multipartConfig.maxRequestSize())){
-					/*正在上传文件*/
-					FileUpload.upload(uploadTemp, multipartConfig.attributeName(), multipartConfig.limitSize(), request);
-					//上传的文件通过attribute带出来
-					if(request.getAttribute(multipartConfig.attributeName()) != null){
-						String attributeName = multipartConfig.attributeName();
-						MultipartHttpServletRequest r = new MultipartHttpServletRequest(request, (MultipartParameter[]) request.getAttribute(attributeName), attributeName);
-						request = r;
+		if(action.actionConfig != null){
+			String contentType = request.getContentType();
+			if(contentType != null && contentType.indexOf("multipart/form-data") >= 0){
+				/*避免“上传任意文件”*/
+				if(action.actionConfig.isMultipartAction){
+					MultipartConfig multipartConfig = action.actionConfig.multipartConfig;
+					
+					if(multipartConfig.maxRequestSize() <= 0 || (request.getContentLength() < multipartConfig.maxRequestSize())){
+						/*正在上传文件*/
+						FileUpload.upload(uploadTemp, multipartConfig.attributeName(), multipartConfig.limitSize(), request);
+						//上传的文件通过attribute带出来
+						if(request.getAttribute(multipartConfig.attributeName()) != null){
+							String attributeName = multipartConfig.attributeName();
+							MultipartHttpServletRequest r = new MultipartHttpServletRequest(request, (MultipartParameter[]) request.getAttribute(attributeName), attributeName);
+							request = r;
+						}
+					} else {
+						log.warning("request body is too large");
 					}
-				} else {
-					log.warning("request body is too large");
 				}
 			}
 		}
@@ -128,7 +130,12 @@ class ActionExecutor {
 		/* apply interceptor chain */
 		InterceptorChainImpl interceptorChain = null;
 		if(action.interceptors!=null){
-			interceptorChain = new InterceptorChainImpl(action.interceptors, action.actionConfig.module, action.actionConfig.api);
+			if(action.actionConfig!=null){
+				interceptorChain = new InterceptorChainImpl(action.interceptors, action.actionConfig.module, action.actionConfig.api);
+			} else {
+				interceptorChain = new InterceptorChainImpl(action.interceptors, null, null);
+			}
+			
 			try {
 				interceptorChain.doInterceptor(ActionContext.getActionContext());
 			} catch (Exception e) {
@@ -140,7 +147,12 @@ class ActionExecutor {
 		//apply service chain
 		ServiceChainImpl serviceChain = null;
 		if(action.services!=null && (interceptorChain==null || interceptorChain.isPass())){
-			serviceChain = new ServiceChainImpl(action.services, action.actionConfig.module, action.actionConfig.api);
+			if(action.actionConfig!=null){
+				serviceChain = new ServiceChainImpl(action.services, action.actionConfig.module, action.actionConfig.api);
+			} else {
+				serviceChain = new ServiceChainImpl(action.services, null, null);
+			}
+			
 			try {
 				serviceChain.doService(ActionContext.getActionContext());
 			} catch (Exception e) {
@@ -152,15 +164,19 @@ class ActionExecutor {
 		
 		//有效的请求
 		if ((interceptorChain==null || interceptorChain.isPass()) && (serviceChain==null || serviceChain.isPass())) {
-			/*调用action方法方法的参数*/
-			Object[] arguments = initArguments(request, response, action);
-			
-			try {
-				//调用action方法并处理action返回的结果
-				handleResult(request, response, executeActionMethod(action.actionConfig, arguments), action.actionConfig);
-			} catch (Exception e) {
-				ActionContext.removeActionContext();
-				handleException(request, response, e);
+			if(action.actionConfig!=null){
+				/*调用action方法方法的参数*/
+				Object[] arguments = initArguments(request, response, action);
+				
+				try {
+					//调用action方法并处理action返回的结果
+					handleResult(request, response, executeActionMethod(action.actionConfig, arguments), action.actionConfig);
+				} catch (Exception e) {
+					ActionContext.removeActionContext();
+					handleException(request, response, e);
+				}
+			} else {
+				((HttpServletResponse) request).sendError(HttpServletResponse.SC_NOT_FOUND);
 			}
 		}
 	}

@@ -75,7 +75,7 @@ class Dispatcher {
 		}
 
 		ApiContext 	actionConfig	= null;
-		String[] 		urlArgs 		= null;
+		String[] 		urlArgs		= null;
 		
 		
 		/* 寻找处理请求的action（方法） */
@@ -89,20 +89,18 @@ class Dispatcher {
 			}
 		}
 		
-		if(actionConfig != null){
-			List<Interceptor> interceptors = new ArrayList<Interceptor>();
-			
-			//查找处理请求的拦截器
-			//uri拦截器
-			for(Interceptor it : uriInterceptors){
-				if(it.matchers(path)){
-					interceptors.add(it);
-				}
-			
+		//查找处理请求的拦截器
+		//uri拦截器
+		List<Interceptor> interceptors = new ArrayList<Interceptor>();
+		for(Interceptor it : uriInterceptors){
+			if(it.matchers(path)){
+				interceptors.add(it);
 			}
-			
-			List<Service> services = null;
-			//服务
+		}
+		
+		//服务
+		List<Service> services = null;
+		if(actionConfig != null){
 			if(servicesMap!=null && actionConfig.serviceNames!=null && actionConfig.serviceNames.length>0){
 				services = new ArrayList<Service>();
 				
@@ -114,11 +112,13 @@ class Dispatcher {
 					}
 				}
 			}
-			
-			return new Action(actionConfig, urlArgs, path, interceptors, services);
 		}
 		
-		return null;
+		if(interceptors.size()==0 && actionConfig==null){
+			return null;
+		} else {
+			return new Action(actionConfig, urlArgs, path, interceptors, services);
+		}
 	}
 
 	/**

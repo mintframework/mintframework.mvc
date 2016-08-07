@@ -66,6 +66,7 @@ class ActionDetector {
 				apiConfig = apiMethod.getAnnotation(API.class);
 				urls = apiConfig.urls();
 				ServiceNames service;
+				
 				for(String url : urls){
 					url = baseUrl + url;
 					

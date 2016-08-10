@@ -7,6 +7,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import mint.mvc.converter.ConverterFactory;
 
@@ -29,9 +30,9 @@ class ParameterInjector {
 	 * 基础类型和String 类型和数组不需要注射
 	 */
 	final boolean 					needInject;
-	final boolean					isArray;	
+	final boolean					isArray;
 	
-	ParameterInjector(int argIndex, Class<?> argType, String argName){
+	ParameterInjector(int argIndex, Class<?> argType, String argName, boolean isMapType){
 		this.argIndex = argIndex;
 		this.argType = argType;
 		this.argName = argName;
@@ -39,6 +40,8 @@ class ParameterInjector {
 		isArray = argType.isArray();
 		
 		if(argType.isPrimitive() || argType.equals(String.class) || isArray){
+			needInject = false;
+		} else if(isMapType){
 			needInject = false;
 		} else {
 			boolean result;
@@ -55,12 +58,13 @@ class ParameterInjector {
 	}
 	
 	/**
-	 * 将请求参数注射入action参数对象中
+	 * 将请求参数注射入action参数Bean对象中
 	 * @param instance
 	 * @param value
 	 * @param key the key for access setter method
+	 * @return 
 	 */
-	<T> T  inject(T instance, String value, String key){
+	void injectBean(Object instance, String value, String key){
 		SetterInfo setterInfo = settersMap.get(key);
 		
 		try {
@@ -68,8 +72,19 @@ class ParameterInjector {
 		} catch (Exception e) {	
 			e.printStackTrace();
 		}
-		
-		return instance;
+	}
+	
+	/**
+	 * 将请求参数注射入action参数Bean对象中
+	 * @param <T>
+	 * @param <T>
+	 * @param instance
+	 * @param value
+	 * @param key the key for access setter method
+	 * @return 
+	 */
+	void injectMap(Map<String, String> instance, String value, String key){
+		instance.put(key, value);
 	}
 	
 	/**

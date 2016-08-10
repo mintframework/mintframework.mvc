@@ -67,10 +67,12 @@ class ApiContext {
 	
 	final APIConfig api;
 	
+	boolean hasMapParam = false;
+	
 	/**
 	 * 参数注射器
 	 */
-	final Map<String ,ParameterInjector> injectors = new HashMap<String ,ParameterInjector>();
+	final Map<String ,ParameterInjector> injectorsMap = new HashMap<String ,ParameterInjector>();
 	
 	List<BuildInArgumentInfo> builtInArguments = null;
 
@@ -131,23 +133,33 @@ class ApiContext {
 		ParameterInjector injector;
 		Set<String>	keys;
 		Class<?> type;
+		
 		for(int i=0 ;i<argumentTypes.length ;i++){
 			type = argumentTypes[i];
 			/*
 			 * 内置参数
 			 * 包括Cookie数组、HttpServletRequest、HttpServletResponse、Session
 			 */
-			if(type.equals(Cookie.class) || type.equals(Cookie[].class) || type.equals(HttpSession.class) || type.equals(HttpServletRequest.class) || type.equals(HttpServletResponse.class)){
-				if(builtInArguments == null) builtInArguments = new ArrayList<BuildInArgumentInfo>(); 
+			if(type.equals(Cookie.class) 
+				|| type.equals(Cookie[].class) 
+				|| type.equals(HttpSession.class) 
+				|| type.equals(HttpServletRequest.class) 
+				|| type.equals(HttpServletResponse.class)){
+				
+				if(builtInArguments == null) {
+					builtInArguments = new ArrayList<BuildInArgumentInfo>(); 
+				}
 				builtInArguments.add(new BuildInArgumentInfo(i, argumentNames.get(i), type));
 				
 				continue;
+			} else if(type.equals(Map.class)){
+				this.hasMapParam = true;
 			}
 
-			injector = new ParameterInjector(i, type, argumentNames.get(i));
+			injector = new ParameterInjector(i, type, argumentNames.get(i), type.equals(Map.class));
 			keys = injector.getKeys();
 			for(String key : keys){
-				injectors.put(key, injector);
+				injectorsMap.put(key, injector);
 			}
 		}
 	}

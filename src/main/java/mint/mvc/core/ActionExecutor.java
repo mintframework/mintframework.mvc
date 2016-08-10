@@ -6,8 +6,11 @@ import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URLDecoder;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -45,6 +48,8 @@ class ActionExecutor {
 	private String uploadTemp;
 	
 	private boolean trimString = false;
+	
+	private final Pattern mapKeyValuePattern = Pattern.compile("^(\\w+).(\\w+)$");
 	/**
 	 * @param config
 	 * @throws ServletException
@@ -104,12 +109,12 @@ class ActionExecutor {
 		ActionContext.setActionContext(servletContext, request, response);
 		
 		/*处理上传请求*/
-		if(action.actionConfig != null){
+		if(action.apiContext != null){
 			String contentType = request.getContentType();
 			if(contentType != null && contentType.indexOf("multipart/form-data") >= 0){
 				/*避免“上传任意文件”*/
-				if(action.actionConfig.isMultipartAction){
-					MultipartConfig multipartConfig = action.actionConfig.multipartConfig;
+				if(action.apiContext.isMultipartAction){
+					MultipartConfig multipartConfig = action.apiContext.multipartConfig;
 					
 					if(multipartConfig.maxRequestSize() <= 0 || (request.getContentLength() < multipartConfig.maxRequestSize())){
 						/*正在上传文件*/
@@ -130,8 +135,8 @@ class ActionExecutor {
 		/* apply interceptor chain */
 		InterceptorChainImpl interceptorChain = null;
 		if(action.interceptors!=null){
-			if(action.actionConfig!=null){
-				interceptorChain = new InterceptorChainImpl(action.interceptors, action.actionConfig.module, action.actionConfig.api);
+			if(action.apiContext!=null){
+				interceptorChain = new InterceptorChainImpl(action.interceptors, action.apiContext.module, action.apiContext.api);
 			} else {
 				interceptorChain = new InterceptorChainImpl(action.interceptors, null, null);
 			}
@@ -147,8 +152,8 @@ class ActionExecutor {
 		//apply service chain
 		ServiceChainImpl serviceChain = null;
 		if(action.services!=null && (interceptorChain==null || interceptorChain.isPass())){
-			if(action.actionConfig!=null){
-				serviceChain = new ServiceChainImpl(action.services, action.actionConfig.module, action.actionConfig.api);
+			if(action.apiContext!=null){
+				serviceChain = new ServiceChainImpl(action.services, action.apiContext.module, action.apiContext.api);
 			} else {
 				serviceChain = new ServiceChainImpl(action.services, null, null);
 			}
@@ -164,13 +169,13 @@ class ActionExecutor {
 		
 		//有效的请求
 		if ((interceptorChain==null || interceptorChain.isPass()) && (serviceChain==null || serviceChain.isPass())) {
-			if(action.actionConfig!=null){
+			if(action.apiContext!=null){
 				/*调用action方法方法的参数*/
 				Object[] arguments = initArguments(request, response, action);
 				
 				try {
 					//调用action方法并处理action返回的结果
-					handleResult(request, response, executeActionMethod(action.actionConfig, arguments), action.actionConfig);
+					handleResult(request, response, executeActionMethod(action.apiContext, arguments), action.apiContext);
 				} catch (Exception e) {
 					ActionContext.removeActionContext();
 					handleException(request, response, e);
@@ -211,8 +216,9 @@ class ActionExecutor {
 	 * @param action
 	 * @param matcher
 	 */
+	@SuppressWarnings("unchecked")
 	private Object[] initArguments(HttpServletRequest req, HttpServletResponse resp, Action action) {
-		ApiContext actionConfig = action.actionConfig;
+		ApiContext actionConfig = action.apiContext;
 		
 		Object[] arguments = new Object[actionConfig.argumentTypes.length];
 
@@ -247,9 +253,8 @@ class ActionExecutor {
 		/* 从请求参数中初始化action方法参数(argument) */
 		Map<String, String[]> paramMap = req.getParameterMap();
 		Object arguInstance;
-		Map<String, ParameterInjector> injectors = actionConfig.injectors;
+		Map<String, ParameterInjector> injectors = actionConfig.injectorsMap;
 		ParameterInjector injector;
-		
 		try {
 			for (String paramName : paramMap.keySet()) {
 				injector = injectors.get(paramName);
@@ -268,7 +273,7 @@ class ActionExecutor {
 							str = str.trim();
 						}
 						
-						arguments[injector.argIndex] = injector.inject(arguInstance, str, paramName);
+						injector.injectBean(arguInstance, str, paramName);
 					} else {
 						if (injector.isArray) {
 							/*
@@ -295,6 +300,23 @@ class ActionExecutor {
 							arguments[injector.argIndex] = converterFactory.convert(injector.argType, paramMap.get(paramName)[0]);
 						}
 					}
+				} else if(action.apiContext.hasMapParam){
+					Matcher matcher = mapKeyValuePattern.matcher(paramName);
+					if(matcher.matches()){
+						injector = injectors.get(matcher.group(1));
+						
+						if(injector!=null){
+							arguInstance = arguments[injector.argIndex];
+							if (arguInstance == null) {
+								/* instantiate a instance the first time you use */
+								arguInstance = new HashMap<String, String>();
+								arguments[injector.argIndex] = arguInstance;
+							}
+							str = paramMap.get(paramName)[0];
+							
+							injector.injectMap((Map<String, String>) arguInstance, str, matcher.group(2));
+						}
+					}
 				}
 			}
 		} catch (InstantiationException e) {
@@ -310,7 +332,7 @@ class ActionExecutor {
 		Object attribute;
 		String attributeName;
 		injector = null;
-		injectors = actionConfig.injectors;
+		injectors = actionConfig.injectorsMap;
 		while(attributes.hasMoreElements()){
 			attributeName = attributes.nextElement();
 			attribute = req.getAttribute(attributeName);

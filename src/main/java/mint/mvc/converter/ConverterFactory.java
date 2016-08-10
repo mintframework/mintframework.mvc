@@ -97,6 +97,8 @@ public class ConverterFactory {
 		try{
 			return c.convert(s);
 		} catch (Exception e){
+			e.printStackTrace();
+			
 			return null;
 		}
 	}

@@ -95,7 +95,7 @@ class ActionExecutor {
 		}
 		
 		try {
-			return apiContext.actionMethod.invoke(apiContext.instance, arguments);
+			return apiContext.apiMethod.invoke(apiContext.instance, arguments);
 		} catch (InvocationTargetException e) {
 			Throwable t = e.getCause();
 			if (t != null && t instanceof Exception){
@@ -220,7 +220,7 @@ class ActionExecutor {
 	private Object[] initArguments(HttpServletRequest req, HttpServletResponse resp, Action action) {
 		ApiContext actionConfig = action.apiContext;
 		
-		Object[] arguments = new Object[actionConfig.argumentTypes.length];
+		Object[] arguments = new Object[actionConfig.argumentClasses.length];
 
 		/* 从url获取参数（parameter）初始化action 方法参数（argument） */
 		String[] urlArgs = action.urlParams;
@@ -247,7 +247,7 @@ class ActionExecutor {
 				str = str.trim();
 			}
 			
-			arguments[argIndex] = converterFactory.convert(actionConfig.argumentTypes[argIndex], str);
+			arguments[argIndex] = converterFactory.convert(actionConfig.argumentClasses[argIndex], str);
 		}
 
 		/* 从请求参数中初始化action方法参数(argument) */
@@ -296,7 +296,6 @@ class ActionExecutor {
 							arguments[injector.argIndex] = arr;
 						} else {
 							/* 简单类型直接转换 */
-							
 							arguments[injector.argIndex] = converterFactory.convert(injector.argType, paramMap.get(paramName)[0]);
 						}
 					}
@@ -309,12 +308,11 @@ class ActionExecutor {
 							arguInstance = arguments[injector.argIndex];
 							if (arguInstance == null) {
 								/* instantiate a instance the first time you use */
-								arguInstance = new HashMap<String, String>();
+								arguInstance = new HashMap<Object, Object>();
 								arguments[injector.argIndex] = arguInstance;
 							}
 							str = paramMap.get(paramName)[0];
-							
-							injector.injectMap((Map<String, String>) arguInstance, str, matcher.group(2));
+							injector.injectMap((Map<Object, Object>)arguInstance, matcher.group(2), str);
 						}
 					}
 				}

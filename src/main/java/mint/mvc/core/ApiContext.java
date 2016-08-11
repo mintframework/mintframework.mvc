@@ -2,6 +2,8 @@ package mint.mvc.core;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,6 +18,7 @@ import javax.servlet.http.HttpSession;
 
 import mint.mvc.annotation.MultipartConfig;
 import mint.mvc.annotation.Required;
+import mint.mvc.converter.ConverterFactory;
 
 /**
  * Internal class which holds object instance, method and arguments' types.
@@ -39,7 +42,7 @@ class ApiContext {
 	/**
 	 * Method instance.
 	 */
-	final Method actionMethod;
+	final Method apiMethod;
 	
 	final boolean isMultipartAction;
 	
@@ -48,7 +51,7 @@ class ApiContext {
 	/**
 	 * Method's arguments' types.
 	 */
-	final Class<?>[] argumentTypes;
+	final Class<?>[] argumentClasses;
 	
 	final boolean[] requires;
 	/**
@@ -69,6 +72,10 @@ class ApiContext {
 	
 	boolean hasMapParam = false;
 	
+	Class<?> mapKeyClass = null;
+	
+	Class<?> mapValueClass = null;
+	
 	/**
 	 * 参数注射器
 	 */
@@ -78,8 +85,8 @@ class ApiContext {
 
 	ApiContext(Object instance, Method apiMethod, List<String> argumentNames, int[] urlArgumentOrder, String[] serviceNames, ModuleConfig module, APIConfig api) {
 		this.instance 		= instance;
-		this.actionMethod 	= apiMethod;
-		this.argumentTypes 	= apiMethod.getParameterTypes();
+		this.apiMethod 	= apiMethod;
+		this.argumentClasses 	= apiMethod.getParameterTypes();
 		this.argumentNames	= argumentNames;
 		this.urlArgumentOrder = urlArgumentOrder;
 		this.serviceNames = serviceNames;
@@ -87,7 +94,7 @@ class ApiContext {
 		this.api = api;
 		
 		Annotation[][] ans = apiMethod.getParameterAnnotations();
-		this.requires = new boolean[argumentTypes.length];
+		this.requires = new boolean[argumentClasses.length];
 		
 		for(int i=0; i<ans.length; i++){
 			for(Annotation a : ans[i]){
@@ -120,7 +127,7 @@ class ApiContext {
 		}
 		
 		/*取消虚拟机安全检查，大幅提高方法调用效率*/
-		this.actionMethod.setAccessible(true);
+		this.apiMethod.setAccessible(true);
 		initInjector();
 	}
 
@@ -130,36 +137,95 @@ class ApiContext {
 	 * TODO 如果一个方法已经被解析过，就不要在解析了，这种情况在一个方法配置多个url时发生
 	 */
 	private void initInjector(){
-		ParameterInjector injector;
+		ParameterInjector injector = null;
 		Set<String>	keys;
-		Class<?> type;
+		Class<?> clazz;
 		
-		for(int i=0 ;i<argumentTypes.length ;i++){
-			type = argumentTypes[i];
+		for(int i=0 ;i<argumentClasses.length ;i++){
+			clazz = argumentClasses[i];
 			/*
 			 * 内置参数
 			 * 包括Cookie数组、HttpServletRequest、HttpServletResponse、Session
 			 */
-			if(type.equals(Cookie.class) 
-				|| type.equals(Cookie[].class) 
-				|| type.equals(HttpSession.class) 
-				|| type.equals(HttpServletRequest.class) 
-				|| type.equals(HttpServletResponse.class)){
+			if(clazz.equals(Cookie.class) 
+				|| clazz.equals(Cookie[].class) 
+				|| clazz.equals(HttpSession.class) 
+				|| clazz.equals(HttpServletRequest.class) 
+				|| clazz.equals(HttpServletResponse.class)){
 				
 				if(builtInArguments == null) {
 					builtInArguments = new ArrayList<BuildInArgumentInfo>(); 
 				}
-				builtInArguments.add(new BuildInArgumentInfo(i, argumentNames.get(i), type));
+				builtInArguments.add(new BuildInArgumentInfo(i, argumentNames.get(i), clazz));
 				
 				continue;
-			} else if(type.equals(Map.class)){
+			} else if(clazz.equals(Map.class)){
 				this.hasMapParam = true;
+				Type type = apiMethod.getGenericParameterTypes()[i];
+				
+				//获取Map中泛型的类型
+				if (type instanceof ParameterizedType) {
+					ParameterizedType paramType = (ParameterizedType) type;
+					Type[] argTypes = paramType.getActualTypeArguments();
+					
+					//是否有泛型
+					if(argTypes!=null){
+						//是否有第一个泛型
+						if(argTypes.length>0){
+							try {
+								mapKeyClass = Class.forName(argTypes[0].getTypeName());
+							} catch (ClassNotFoundException e) {
+								e.printStackTrace();
+								continue;
+							}
+						}
+						
+						if(mapKeyClass == null) {
+							mapKeyClass = String.class;
+						}
+						
+						//检测泛型是否可以转换
+						if(!(new ConverterFactory()).canConvert(mapKeyClass)){
+							logger.warning(apiMethod.toGenericString() + " include unsupported Map parameterizedType "
+								+ mapKeyClass.getName() + ", support only  primitive type or String");
+							continue;
+						}
+						
+						//是否有第二个泛型
+						if(argTypes.length==2){
+							try {
+								mapValueClass = Class.forName(argTypes[1].getTypeName());
+							} catch (ClassNotFoundException e) {
+								e.printStackTrace();
+								continue;
+							}
+						}
+						
+						if(mapValueClass == null) {
+							mapValueClass = String.class;
+						}
+						
+						//检测泛型是否可以转换
+						if(!(new ConverterFactory()).canConvert(mapValueClass)){
+							logger.warning(apiMethod.toGenericString() + " include unsupported Map parameterizedType "
+								+ mapValueClass.getName() + ", support only  primitive type or String");
+							continue;
+						}
+					}
+					
+					injector = new ParameterInjector(i, clazz, argumentNames.get(i), true, mapKeyClass, mapValueClass);
+				} else {
+					injector = new ParameterInjector(i, clazz, argumentNames.get(i), true, String.class, String.class);
+				}
+			} else {
+				injector = new ParameterInjector(i, clazz, argumentNames.get(i), false, null, null);
 			}
-
-			injector = new ParameterInjector(i, type, argumentNames.get(i), type.equals(Map.class));
-			keys = injector.getKeys();
-			for(String key : keys){
-				injectorsMap.put(key, injector);
+			
+			if(injector!=null){
+				keys = injector.getKeys();
+				for(String key : keys){
+					injectorsMap.put(key, injector);
+				}
 			}
 		}
 	}

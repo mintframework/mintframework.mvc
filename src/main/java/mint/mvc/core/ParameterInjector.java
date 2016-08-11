@@ -7,7 +7,6 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import mint.mvc.converter.ConverterFactory;
 
@@ -18,6 +17,8 @@ import mint.mvc.converter.ConverterFactory;
  *
  */
 class ParameterInjector {
+	private final static ConverterFactory converterFactory = new ConverterFactory();
+	
 	/**
 	 * parameter's index in action method's parameters.
 	 */
@@ -32,10 +33,16 @@ class ParameterInjector {
 	final boolean 					needInject;
 	final boolean					isArray;
 	
-	ParameterInjector(int argIndex, Class<?> argType, String argName, boolean isMapType){
+	final Class<?> 					mapKeyClass;
+	final Class<?>					mapValueClass;
+	
+	ParameterInjector(int argIndex, Class<?> argType, String argName, boolean isMapType, Class<?> mapKeyClass, Class<?> mapValueClass){
 		this.argIndex = argIndex;
 		this.argType = argType;
 		this.argName = argName;
+		
+		this.mapKeyClass = mapKeyClass;
+		this.mapValueClass = mapValueClass;
 		
 		isArray = argType.isArray();
 		
@@ -68,7 +75,7 @@ class ParameterInjector {
 		SetterInfo setterInfo = settersMap.get(key);
 		
 		try {
-			setterInfo.setter.invoke(instance, (new ConverterFactory()).convert(setterInfo.fieldType, value));
+			setterInfo.setter.invoke(instance, converterFactory.convert(setterInfo.fieldType, value));
 		} catch (Exception e) {	
 			e.printStackTrace();
 		}
@@ -83,8 +90,8 @@ class ParameterInjector {
 	 * @param key the key for access setter method
 	 * @return 
 	 */
-	void injectMap(Map<String, String> instance, String value, String key){
-		instance.put(key, value);
+	void injectMap(Map<Object, Object> instance, String key, String value){		
+		instance.put(converterFactory.convert(this.mapKeyClass, key), converterFactory.convert(this.mapValueClass, value));
 	}
 	
 	/**

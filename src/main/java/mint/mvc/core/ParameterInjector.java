@@ -126,6 +126,9 @@ class ParameterInjector {
 							
 							sInfo = new SetterInfo(setter, type);
 							settersMap.put(argName+"."+pd.getName(), sInfo);
+							settersMap.put(argName+"["+pd.getName()+"]", sInfo);
+							settersMap.put(argName+"['"+pd.getName()+"']", sInfo);
+							settersMap.put(argName+"[\""+pd.getName()+"\"]", sInfo);
 						}
 					}
 				}

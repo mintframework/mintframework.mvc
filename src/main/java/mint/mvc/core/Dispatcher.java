@@ -137,7 +137,7 @@ class Dispatcher {
 		/* 初始化action */
 		log.info("start matching url ...");
 		ActionDetector ad = new ActionDetector();
-		ad.awareActionMethodFromBeans(componentScaner.getActionBeans());
+		ad.awareActionMethodFromBeans(componentScaner.getActionObjects());
 		
 		this.urlMapMap.put("get", ad.getUrlMap);
 		this.urlMapMap.put("put", ad.putUrlMap);
@@ -155,7 +155,7 @@ class Dispatcher {
 		log.info("end matching url ");
 		
 		//初始化url拦截器
-		Set<Interceptor> itset = componentScaner.getInteceptorBeans();
+		Set<Interceptor> itset = componentScaner.getInteceptorObjects();
 		uriInterceptors = new ArrayList<Interceptor>();
 		if(itset != null){
 			uriInterceptors.addAll(itset);
@@ -176,7 +176,7 @@ class Dispatcher {
 		});
 		
 		//初始化service拦截器
-		servicesMap = componentScaner.getServiceBeans();
+		servicesMap = componentScaner.getServiceObjects();
 		
 		//初始化组件报告器
 		String cr = config.getInitParameter("componentReportor");

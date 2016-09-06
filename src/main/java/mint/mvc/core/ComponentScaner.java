@@ -88,7 +88,7 @@ class ComponentScaner {
 	 * 返回拦截器对象
 	 * @return
 	 */
-	Set<Interceptor> getInteceptorBeans(){
+	Set<Interceptor> getInteceptorObjects(){
 		if(interceptorClasses!=null){
 			Set<Interceptor> interceptors = new HashSet<Interceptor>();
 			Interceptor itcep = null;
@@ -113,7 +113,7 @@ class ComponentScaner {
 	 * 返回服务对象
 	 * @return
 	 */
-	Map<String, Service> getServiceBeans(){
+	Map<String, Service> getServiceObjects(){
 		if(serviceClasses!=null){
 			Map<String, Service> services = new HashMap<String, Service>();
 			Service sis = null;
@@ -142,17 +142,17 @@ class ComponentScaner {
 	/**
 	 * Find all beans in container.
 	 */
-	Set<Object> getActionBeans(){
-		if(interceptorClasses!=null){
-			Set<Object> actions = new HashSet<Object>();
+	Set<Object> getActionObjects(){
+		if(moduleClass!=null){
+			Set<Object> modules = new HashSet<Object>();
 			for(Class<?> cls : moduleClass){
 				try {
-					actions.add(cls.newInstance());
+					modules.add(cls.newInstance());
 				} catch (InstantiationException | IllegalAccessException e) {
 					logger.warning("can't instantiates a action->"+cls.getName());
 				}
 			}
-			return actions;
+			return modules;
 		} else {
 			return null;
 		}

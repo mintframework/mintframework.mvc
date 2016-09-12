@@ -125,6 +125,7 @@ class ParameterInjector {
 				PropertyDescriptor[] props = Introspector.getBeanInfo(argType, Object.class).getPropertyDescriptors();
 				Method setter;
 				Class<?> type;
+				SetterInfo sInfo;
 				for(PropertyDescriptor pd : props){
 					type = pd.getPropertyType();
 					
@@ -134,7 +135,11 @@ class ParameterInjector {
 						if(setter!=null){
 							setter.setAccessible(true);
 							
-							settersMap.put(argName+"."+pd.getName(), new SetterInfo(setter, type, null, true));
+							sInfo = new SetterInfo(setter, type, null, true);
+							settersMap.put(argName+"."+pd.getName(), sInfo);
+							settersMap.put(argName+"["+pd.getName()+"]", sInfo);
+							settersMap.put(argName+"['"+pd.getName()+"']", sInfo);
+							settersMap.put(argName+"[\""+pd.getName()+"\"]", sInfo);
 						}
 					}
 				}
@@ -149,6 +154,7 @@ class ParameterInjector {
 				if(settersMap.get(argName+"."+f.getName())!=null) continue;
 				
 				if(converter.canConvert(f.getType())){
+					f.setAccessible(true);
 					settersMap.put(argName+"."+f.getName(),  new SetterInfo(null, f.getType(), f, false));
 				}
 			}

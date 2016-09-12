@@ -32,7 +32,7 @@ public class ServiceServlet extends HttpServlet {
 
 	private Dispatcher dispatcher;
 	private StaticFileHandler staticFileHandler;
-	private ActionExecutor actionExecutor;
+	private ApiExecutor actionExecutor;
 	
 	private boolean handleStatic = true;
 	
@@ -44,7 +44,7 @@ public class ServiceServlet extends HttpServlet {
 		super.init(servletConfig);
 		log.info("Init ServiceServlet...");
 		this.dispatcher = new Dispatcher();
-		this.actionExecutor = new ActionExecutor();
+		this.actionExecutor = new ApiExecutor();
 		
 		Config config = new Config() {
 			public String getInitParameter(String name) {
@@ -63,7 +63,7 @@ public class ServiceServlet extends HttpServlet {
 		if(handleStatic){
 			this.staticFileHandler = new StaticFileHandler(servletConfig);
 		}
-		ActionContext.setWebRoot(servletConfig.getServletContext().getContextPath());
+		RequestContext.setWebRoot(servletConfig.getServletContext().getContextPath());
 	}
 
 	/* (non-Javadoc)

@@ -18,5 +18,5 @@ public abstract class Service {
 		return true;
 	}
 	
-	public abstract void service(ActionContext ctx, ModuleConfig module, APIConfig api, ServiceChain chain) throws Exception;
+	public abstract void service(RequestContext ctx, ModuleConfig module, APIConfig api, ServiceChain chain) throws Exception;
 }

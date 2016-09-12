@@ -13,5 +13,5 @@ public interface InterceptorChain {
      * @param execution Execution to execute.
      * @throws Exception Any exception if error occured.
      */
-    void doInterceptor(ActionContext ctx) throws Exception;
+    void doInterceptor(RequestContext ctx) throws Exception;
 }

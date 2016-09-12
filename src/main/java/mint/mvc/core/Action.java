@@ -10,13 +10,13 @@ import java.util.List;
  *
  */
 class Action {
-	final ApiContext 			apiContext;
+	final APIContext 			apiContext;
 	final String[] 				urlParams;
 	final String 				uri;
 	final List<Interceptor> 	interceptors;
 	final List<Service>			services;
 	
-	Action(ApiContext actionConfig, String[] urlParams, String uri, List<Interceptor> interceptors, List<Service> services){
+	Action(APIContext actionConfig, String[] urlParams, String uri, List<Interceptor> interceptors, List<Service> services){
 		this.apiContext 		= actionConfig;
 		this.urlParams 		= urlParams;
 		this.uri			= uri;

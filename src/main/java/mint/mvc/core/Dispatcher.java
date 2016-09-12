@@ -25,7 +25,7 @@ import mint.mvc.annotation.InterceptorConfig;
  */
 class Dispatcher {
 	private Logger log = Logger.getLogger(this.getClass().getName());
-	private Map<String, Map<UrlMatcher, ApiContext>> urlMapMap = new HashMap<String, Map<UrlMatcher, ApiContext>>();
+	private Map<String, Map<UrlMatcher, APIContext>> urlMapMap = new HashMap<String, Map<UrlMatcher, APIContext>>();
 	private Map<String, UrlMatcher[]> matchersMap = new HashMap<String, UrlMatcher[]>();
 	
 	/**
@@ -74,7 +74,7 @@ class Dispatcher {
 			request.setCharacterEncoding("UTF-8");
 		}
 
-		ApiContext 	actionConfig	= null;
+		APIContext 	actionConfig	= null;
 		String[] 		urlArgs		= null;
 		
 		
@@ -136,7 +136,7 @@ class Dispatcher {
 		
 		/* 初始化action */
 		log.info("start matching url ...");
-		ActionDetector ad = new ActionDetector();
+		APIDetector ad = new APIDetector();
 		ad.awareActionMethodFromBeans(componentScaner.getActionBeans());
 		
 		this.urlMapMap.put("get", ad.getUrlMap);

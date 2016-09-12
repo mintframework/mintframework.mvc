@@ -11,9 +11,9 @@ import javax.servlet.http.HttpSession;
  * @author Michael Liao (askxuefeng@gmail.com)
  * @author liangwei
  */
-public final class ActionContext {
+public final class RequestContext {
 
-	static final ThreadLocal<ActionContext> actionContexts = new ThreadLocal<ActionContext>();
+	static final ThreadLocal<RequestContext> actionContexts = new ThreadLocal<RequestContext>();
 
 	private static String webRoot;
 	
@@ -52,12 +52,12 @@ public final class ActionContext {
 	/**
 	 * Get current ActionContext object.
 	 */
-	public static ActionContext getActionContext() {
+	public static RequestContext getActionContext() {
 		return actionContexts.get();
 	}
 
 	static void setActionContext(ServletContext context, HttpServletRequest request, HttpServletResponse response) {
-		ActionContext ctx = new ActionContext();
+		RequestContext ctx = new RequestContext();
 		ctx.context = context;
 		ctx.request = request;
 		ctx.response = response;
@@ -77,6 +77,6 @@ public final class ActionContext {
 	}
 
 	static void setWebRoot(String webRoot) {
-		ActionContext.webRoot = webRoot;
+		RequestContext.webRoot = webRoot;
 	}
 }

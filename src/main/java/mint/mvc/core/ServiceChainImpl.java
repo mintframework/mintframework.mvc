@@ -25,7 +25,7 @@ class ServiceChainImpl implements ServiceChain {
     	size = this.services.size();
     }
 
-    public void doService(ActionContext ctx) throws Exception {
+    public void doService(RequestContext ctx) throws Exception {
         if(index == size){
         	this.isPass = true;
         } else {

@@ -8,5 +8,5 @@ public interface ServiceChain {
      * @param execution Execution to execute.
      * @throws Exception Any exception if error occured.
      */
-	void doService(ActionContext ctx) throws Exception;
+	void doService(RequestContext ctx) throws Exception;
 }

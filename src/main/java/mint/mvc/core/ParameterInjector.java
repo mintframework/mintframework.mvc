@@ -3,7 +3,10 @@ package mint.mvc.core;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -74,10 +77,18 @@ class ParameterInjector {
 	void injectBean(Object instance, String value, String key){
 		SetterInfo setterInfo = settersMap.get(key);
 		
-		try {
-			setterInfo.setter.invoke(instance, converterFactory.convert(setterInfo.fieldType, value));
-		} catch (Exception e) {	
-			e.printStackTrace();
+		if(setterInfo.isSetter){
+			try {
+				setterInfo.setter.invoke(instance, converterFactory.convert(setterInfo.fieldType, value));
+			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+				e.printStackTrace();
+			}
+		} else {
+			try {
+				setterInfo.field.set(instance, converterFactory.convert(setterInfo.fieldType, value));
+			} catch (IllegalArgumentException | IllegalAccessException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	
@@ -114,7 +125,6 @@ class ParameterInjector {
 				PropertyDescriptor[] props = Introspector.getBeanInfo(argType, Object.class).getPropertyDescriptors();
 				Method setter;
 				Class<?> type;
-				SetterInfo sInfo;
 				for(PropertyDescriptor pd : props){
 					type = pd.getPropertyType();
 					
@@ -124,14 +134,25 @@ class ParameterInjector {
 						if(setter!=null){
 							setter.setAccessible(true);
 							
-							sInfo = new SetterInfo(setter, type);
-							settersMap.put(argName+"."+pd.getName(), sInfo);
+							settersMap.put(argName+"."+pd.getName(), new SetterInfo(setter, type, null, true));
 						}
 					}
 				}
 			} catch (IntrospectionException e) {
 				e.printStackTrace();
 			}
+			
+			//反射获取属性，非final和static属性也可以注入
+			for(Field f : argType.getFields()){
+				if(Modifier.isFinal(f.getModifiers()) || Modifier.isStatic(f.getModifiers())) continue;
+				
+				if(settersMap.get(argName+"."+f.getName())!=null) continue;
+				
+				if(converter.canConvert(f.getType())){
+					settersMap.put(argName+"."+f.getName(),  new SetterInfo(null, f.getType(), f, false));
+				}
+			}
+			
 			
 			/*把参数本身当成一个可解析项*/
 			settersMap.put(argName, null);
@@ -151,9 +172,13 @@ class ParameterInjector {
 class SetterInfo {
 	public final Method 	setter;
 	public final Class<?>	fieldType;
+	public final Boolean 	isSetter;
+	public final Field		field;
 	
-	SetterInfo(Method setter, Class<?> fieldType){
+	SetterInfo(Method setter, Class<?> fieldType, Field field, Boolean isSetter){
 		this.setter 	= setter;
 		this.fieldType 	= fieldType;
+		this.isSetter = isSetter;
+		this.field = field;
 	}
 }

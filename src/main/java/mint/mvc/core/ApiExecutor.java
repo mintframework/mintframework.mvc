@@ -38,7 +38,7 @@ import mint.mvc.template.TemplateFactory;
  * @date 2015年3月13日 下午7:44:15 
  *
  */
-class ActionExecutor {
+class ApiExecutor {
 	private Logger log = Logger.getLogger(this.getClass().getName());
 	private ServletContext servletContext;
 	private ExceptionListener exceptionListener;
@@ -86,7 +86,7 @@ class ActionExecutor {
 	 * @return
 	 * @throws Exception
 	 */
-	Object executeActionMethod(ApiContext apiContext, Object[] arguments) throws Exception {
+	Object executeActionMethod(APIContext apiContext, Object[] arguments) throws Exception {
 		//@Required 注解标注的参数不能为空
 		for(int i=apiContext.requires.length-1; i>-1; i--){
 			if(apiContext.requires[i] && arguments[i]==null){
@@ -106,7 +106,7 @@ class ActionExecutor {
 	}
 	
 	void executeAction(HttpServletRequest request, HttpServletResponse response, Action action) throws ServletException, IOException{
-		ActionContext.setActionContext(servletContext, request, response);
+		RequestContext.setActionContext(servletContext, request, response);
 		
 		/*处理上传请求*/
 		if(action.apiContext != null){
@@ -142,9 +142,9 @@ class ActionExecutor {
 			}
 			
 			try {
-				interceptorChain.doInterceptor(ActionContext.getActionContext());
+				interceptorChain.doInterceptor(RequestContext.getActionContext());
 			} catch (Exception e) {
-				ActionContext.removeActionContext();
+				RequestContext.removeActionContext();
 				handleException(request, response, e);
 			}
 		}
@@ -159,9 +159,9 @@ class ActionExecutor {
 			}
 			
 			try {
-				serviceChain.doService(ActionContext.getActionContext());
+				serviceChain.doService(RequestContext.getActionContext());
 			} catch (Exception e) {
-				ActionContext.removeActionContext();
+				RequestContext.removeActionContext();
 				handleException(request, response, e);
 			}
 		}
@@ -177,7 +177,7 @@ class ActionExecutor {
 					//调用action方法并处理action返回的结果
 					handleResult(request, response, executeActionMethod(action.apiContext, arguments), action.apiContext);
 				} catch (Exception e) {
-					ActionContext.removeActionContext();
+					RequestContext.removeActionContext();
 					handleException(request, response, e);
 				}
 			} else {
@@ -218,7 +218,7 @@ class ActionExecutor {
 	 */
 	@SuppressWarnings("unchecked")
 	private Object[] initArguments(HttpServletRequest req, HttpServletResponse resp, Action action) {
-		ApiContext actionConfig = action.apiContext;
+		APIContext actionConfig = action.apiContext;
 		
 		Object[] arguments = new Object[actionConfig.argumentClasses.length];
 
@@ -390,7 +390,7 @@ class ActionExecutor {
 	/**
 	 *  处理action返回的结果。当方法出现异常时，处理异常
 	 */
-	private void handleResult(HttpServletRequest request, HttpServletResponse response, Object result, ApiContext actionConfig) throws Exception {
+	private void handleResult(HttpServletRequest request, HttpServletResponse response, Object result, APIContext actionConfig) throws Exception {
 		if (result == null) {
 			return;
 		}

@@ -25,7 +25,7 @@ class InterceptorChainImpl implements InterceptorChain {
     	size = this.interceptors.size();
     }
 
-    public void doInterceptor(ActionContext ctx) throws Exception {
+    public void doInterceptor(RequestContext ctx) throws Exception {
         if(index == size){
         	this.isPass = true;
         } else {

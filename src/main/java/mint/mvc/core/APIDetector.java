@@ -19,14 +19,14 @@ import mint.mvc.util.GetArgumentName;
  * @author LiangWei(895925636@qq.com)
  * @date 2015年3月13日 下午7:43:43 
  */
-class ActionDetector {
+class APIDetector {
 	private Logger log = Logger.getLogger(this.getClass().getName());
-	protected Map<UrlMatcher, ApiContext> getUrlMap 	= new HashMap<UrlMatcher, ApiContext>();
-	protected Map<UrlMatcher, ApiContext> putUrlMap 	= new HashMap<UrlMatcher, ApiContext>();
-	protected Map<UrlMatcher, ApiContext> postUrlMap 	= new HashMap<UrlMatcher, ApiContext>();
-	protected Map<UrlMatcher, ApiContext> headUrlMap 	= new HashMap<UrlMatcher, ApiContext>();
-	protected Map<UrlMatcher, ApiContext> deleteUrlMap 	= new HashMap<UrlMatcher, ApiContext>();
-	protected Map<UrlMatcher, ApiContext> optionsUrlMap 	= new HashMap<UrlMatcher, ApiContext>();
+	protected Map<UrlMatcher, APIContext> getUrlMap 	= new HashMap<UrlMatcher, APIContext>();
+	protected Map<UrlMatcher, APIContext> putUrlMap 	= new HashMap<UrlMatcher, APIContext>();
+	protected Map<UrlMatcher, APIContext> postUrlMap 	= new HashMap<UrlMatcher, APIContext>();
+	protected Map<UrlMatcher, APIContext> headUrlMap 	= new HashMap<UrlMatcher, APIContext>();
+	protected Map<UrlMatcher, APIContext> deleteUrlMap 	= new HashMap<UrlMatcher, APIContext>();
+	protected Map<UrlMatcher, APIContext> optionsUrlMap 	= new HashMap<UrlMatcher, APIContext>();
 	
 	protected Set<ModuleConfig> modules = new HashSet<ModuleConfig>();
 	
@@ -91,9 +91,9 @@ class ActionDetector {
 						apis.add(api);
 						
 						if(service!=null){
-							addApi(matcher, new ApiContext(moduleBean, apiMethod, argNames, matcher.urlArgumentOrder, service.value(), module, api), apiConfig.method());
+							addApi(matcher, new APIContext(moduleBean, apiMethod, argNames, matcher.urlArgumentOrder, service.value(), module, api), apiConfig.method());
 						} else {
-							addApi(matcher, new ApiContext(moduleBean, apiMethod, argNames, matcher.urlArgumentOrder, null, module, api), apiConfig.method());
+							addApi(matcher, new APIContext(moduleBean, apiMethod, argNames, matcher.urlArgumentOrder, null, module, api), apiConfig.method());
 						}
 					}
 				}
@@ -106,7 +106,7 @@ class ActionDetector {
 	 * @param action
 	 * @param method
 	 */
-	private void addApi(UrlMatcher matcher, ApiContext action, String[] methods){
+	private void addApi(UrlMatcher matcher, APIContext action, String[] methods){
  		for(String method : methods){
 			method = method.toLowerCase();
 		

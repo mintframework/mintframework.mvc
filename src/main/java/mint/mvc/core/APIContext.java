@@ -26,8 +26,8 @@ import mint.mvc.converter.ConverterFactory;
  * @author Michael Liao (askxuefeng@gmail.com)
  * @author LW
  */
-class ApiContext {
-	static Logger logger = Logger.getLogger(ApiContext.class.getName());
+class APIContext {
+	static Logger logger = Logger.getLogger(APIContext.class.getName());
 	
 	/**
 	 * 声明的内置变量
@@ -83,7 +83,7 @@ class ApiContext {
 	
 	List<BuildInArgumentInfo> builtInArguments = null;
 
-	ApiContext(Object instance, Method apiMethod, List<String> argumentNames, int[] urlArgumentOrder, String[] serviceNames, ModuleConfig module, APIConfig api) {
+	APIContext(Object instance, Method apiMethod, List<String> argumentNames, int[] urlArgumentOrder, String[] serviceNames, ModuleConfig module, APIConfig api) {
 		this.instance 		= instance;
 		this.apiMethod 	= apiMethod;
 		this.argumentClasses 	= apiMethod.getParameterTypes();

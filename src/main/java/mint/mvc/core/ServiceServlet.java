@@ -122,7 +122,7 @@ public class ServiceServlet extends HttpServlet {
 				@Override
 				public void run() {
 					try {
-						actionExecutor.executeAction(httpReq, httpResp, action);
+						actionExecutor.executeApi(httpReq, httpResp, action);
 					} catch (ServletException e) {
 						e.printStackTrace();
 					} catch (IOException e) {

@@ -7,7 +7,9 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -39,6 +41,19 @@ class ParameterInjector {
 	final Class<?> 					mapKeyClass;
 	final Class<?>					mapValueClass;
 	
+	boolean isEnum = false;
+	List<Integer> enumOrdinals;
+	List<String> enumNames;
+	
+	
+	/**
+	 * @param argIndex 参数的索引
+	 * @param argType 参数的类型
+	 * @param argName 参数的名字
+	 * @param isMapType 是否Map类型参数
+	 * @param mapKeyClass 泛型第一个参数
+	 * @param mapValueClass 泛型第二个参数
+	 */
 	ParameterInjector(int argIndex, Class<?> argType, String argName, boolean isMapType, Class<?> mapKeyClass, Class<?> mapValueClass){
 		this.argIndex = argIndex;
 		this.argType = argType;
@@ -53,6 +68,19 @@ class ParameterInjector {
 			needInject = false;
 		} else if(isMapType){
 			needInject = false;
+		} else if(argType.isEnum()){
+			needInject = false;
+			enumOrdinals = new ArrayList<>();
+			enumNames = new ArrayList<>();
+			isEnum = true;
+			
+			Enum<?> es[] = ((Class<? extends Enum>)argType).getEnumConstants();
+			if(es!=null){
+				for(Enum<?> e : es){
+					enumOrdinals.add(e.ordinal());
+					enumNames.add(e.name());
+				}
+			}
 		} else {
 			boolean result;
 			try {

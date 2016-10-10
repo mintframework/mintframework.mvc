@@ -49,6 +49,11 @@ public class BuildInArgumentInfo {
 	 */
 	public final static int TYPE_COOKIE 	= 4;
 	
+	/**
+	 * Cookie 类型代号
+	 */
+	public final static int TYPE_BODY 		= 5;
+	
 	BuildInArgumentInfo(int argIndex, String argName, Class<?> argType){
 		this.argIndex 	= argIndex;
 		this.argName 	= argName;
@@ -64,6 +69,8 @@ public class BuildInArgumentInfo {
 			typeCode = TYPE_COOKIES;
 		} else if (argType.equals(Cookie.class)){
 			typeCode = TYPE_COOKIE;
+		} else if (argType.equals(RequestBody.class)){
+			typeCode = TYPE_BODY;
 		} else {
 			typeCode = -1;
 		}

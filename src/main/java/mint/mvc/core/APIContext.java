@@ -151,7 +151,8 @@ class APIContext {
 				|| clazz.equals(Cookie[].class) 
 				|| clazz.equals(HttpSession.class) 
 				|| clazz.equals(HttpServletRequest.class) 
-				|| clazz.equals(HttpServletResponse.class)){
+				|| clazz.equals(HttpServletResponse.class)
+				|| clazz.equals(RequestBody.class)){
 				
 				if(builtInArguments == null) {
 					builtInArguments = new ArrayList<BuildInArgumentInfo>(); 

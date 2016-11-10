@@ -83,7 +83,15 @@ class APIContext {
 	
 	List<BuildInArgumentInfo> builtInArguments = null;
 
-	APIContext(Object instance, Method apiMethod, List<String> argumentNames, int[] urlArgumentOrder, String[] serviceNames, ModuleConfig module, APIConfig api) {
+	APIContext(
+			Object instance,
+			Method apiMethod,
+			List<String> argumentNames,
+			int[] urlArgumentOrder,
+			String[] serviceNames,
+			ModuleConfig module,
+			APIConfig api) {
+		
 		this.instance 		= instance;
 		this.apiMethod 	= apiMethod;
 		this.argumentClasses 	= apiMethod.getParameterTypes();

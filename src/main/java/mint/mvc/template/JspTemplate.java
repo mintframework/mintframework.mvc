@@ -14,21 +14,21 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class JspTemplate implements Template {
 
-    private String path;
+	private String path;
 
-    public JspTemplate(String path) {
-        this.path = path;
-    }
+	public JspTemplate(String path) {
+		this.path = path;
+	}
 
-    /**
-     * Execute the JSP with given model.
-     */
-    public void render(HttpServletRequest request, HttpServletResponse response, Map<String, Object> model) throws Exception {
-        for (String key : model.keySet()) {
-            request.setAttribute(key, model.get(key));
-        }
-        request.getRequestDispatcher(path).forward(request, response);
-        return;
-    }
+	/**
+	 * Execute the JSP with given model.
+	 */
+	public void render(HttpServletRequest request, HttpServletResponse response, Map<String, Object> model) throws Exception {
+		for (String key : model.keySet()) {
+			request.setAttribute(key, model.get(key));
+		}
+		request.getRequestDispatcher(path).forward(request, response);
+		return;
+	}
 
 }

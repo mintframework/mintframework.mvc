@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.channels.FileChannel;
 
+import javax.annotation.processing.FilerException;
+
 /** 
  * 文件类，添加了一个saveTo方法
  * @author LiangWei(895925636@qq.com)
@@ -60,11 +62,16 @@ public class TempFile extends File{
 	
 	/**
 	 * 将被文件复制到指定的目标位置
-	 * @param path 路径, end with "/"
+	 * @param path 路径
 	 * @param name 文件名字符串
 	 * @throws IOException
 	 */
 	public void saveAs(String path, String name) throws IOException{
-		saveAs(path+name);
+		File file = new File(path);
+		if(file.exists() && file.isDirectory()){
+			saveAs(file.getAbsolutePath().replaceAll("\\\\", "/")+"/"+name);
+		} else {
+			throw new FilerException("path not a directory or not exist");
+		}
 	}
 }

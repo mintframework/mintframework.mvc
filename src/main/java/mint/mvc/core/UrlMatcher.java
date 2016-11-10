@@ -30,6 +30,7 @@ final class UrlMatcher {
 	 */
 	final Pattern pattern;
 	final int[] urlArgumentOrder;
+	final String[] urlArgumentNames;
 
 	/**
 	 * Build UrlMatcher by given url like "/blog/{name}/{id}".
@@ -41,7 +42,7 @@ final class UrlMatcher {
 		List<String> argNames = GetArgumentName.getArgumentNames(actMethod);
 		this.url = url;
 
-		List<String> urlPList = new ArrayList<String>();
+		List<String> urlParamNames = new ArrayList<String>();
 		String urlParamName;
 
 		Matcher matcher = Pattern.compile("\\{[^\\{^\\}]+\\}").matcher(url);
@@ -65,25 +66,26 @@ final class UrlMatcher {
 			}
 
 			/* 检查url有没有包含相同参数名 */
-			if (urlPList.contains(urlParamName)) {
+			if (urlParamNames.contains(urlParamName)) {
 				throw new ConfigException("uri包含同名参数");
 			}
 
-			urlPList.add(urlParamName);
+			urlParamNames.add(urlParamName);
 		}
 
-		int len = urlPList.size();
+		int len = urlParamNames.size();
 		this.urlArgumentOrder = new int[len];
+		this.urlArgumentNames = new String[len];
 
-		for (int i = 0, j; i < len; i++) {
-
-			if (urlPList != null) {
-				urlParamName = urlPList.get(i);
+		if (urlParamNames != null) {
+			for (int i = 0, j; i < len; i++) {
+				urlParamName = urlParamNames.get(i);
 				j = argNames.indexOf(urlParamName);
 
 				/* 如果url中的参数名在action方法中找不到，则抛出异常 */
 				if (j > -1) {
 					urlArgumentOrder[i] = j;
+					urlArgumentNames[i] = urlParamName;
 				} else {
 					// throw new ConfigException("action 方法:" +
 					// actMethod.toGenericString() + " 不含有" + uPName + "参数");
@@ -135,9 +137,9 @@ final class UrlMatcher {
 		Class<?> argType;
 		for (int argIndex : urlArgumentOrder) {
 			argType = argTypes[argIndex];
-			if (!cvFact.canConvert(argTypes[argIndex])) {
+			if (!argTypes[argIndex].isEnum() && !cvFact.canConvert(argTypes[argIndex])) {
 				log.warning(method.toGenericString() + " include unsupported uri argument type"
-						+ argType.getName() + ",uri argument support only  primitive type or String");
+						+ argType.getName() + ",uri argument support only  primitive type or String or Enum");
 				return false;
 			}
 			argTypes[argIndex] = null;

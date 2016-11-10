@@ -148,8 +148,8 @@ class ParameterInjector {
 		if(needInject){
 			ConverterFactory converter = new ConverterFactory();
 			
-			/*内省方式获取属性和setter*/
 			try {
+				/*内省方式获取属性和setter*/
 				PropertyDescriptor[] props = Introspector.getBeanInfo(argType, Object.class).getPropertyDescriptors();
 				Method setter;
 				Class<?> type;
@@ -175,9 +175,9 @@ class ParameterInjector {
 				e.printStackTrace();
 			}
 			
-			//反射获取属性，非final和static属性也可以注入
+			//反射获取属性，非final,static,private属性也可以注入
 			for(Field f : argType.getFields()){
-				if(Modifier.isFinal(f.getModifiers()) || Modifier.isStatic(f.getModifiers())) continue;
+				if(Modifier.isFinal(f.getModifiers()) || Modifier.isStatic(f.getModifiers()) || Modifier.isPrivate(f.getModifiers())) continue;
 				
 				if(settersMap.get(argName+"."+f.getName())!=null) continue;
 				

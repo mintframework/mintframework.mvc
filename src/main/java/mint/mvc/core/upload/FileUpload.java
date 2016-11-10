@@ -68,7 +68,13 @@ public class FileUpload {
 		for(String s : request.getHeader("Content-Type").split(";")){
 			if(s.indexOf("boundary=") > 0){
 				boundary = "--"+s.split("=")[1];
+				break;
 			}
+		}
+		
+		if(boundary==null){
+			logger.warning("request header does not has a boundary");
+			return;
 		}
 		
 		List<MultipartParameter> multiParam = null;

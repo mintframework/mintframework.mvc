@@ -8,6 +8,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URLDecoder;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -230,7 +231,7 @@ class ApiExecutor {
 
 		Object[] arguments = new Object[actionConfig.argumentClasses.length];
 
-		/* 从url获取参数（parameter）初始化action 方法参数（argument） */
+		/* 从url获取参数（parameter）初始化API参数（argument） */
 		String[] urlArgs = action.urlParams;
 
 		int argIndex;
@@ -255,8 +256,14 @@ class ApiExecutor {
 			if (trimString) {
 				str = str.trim();
 			}
-
-			arguments[argIndex] = converterFactory.convert(actionConfig.argumentClasses[argIndex], str);
+			
+			//枚举类型初始化
+			if(actionConfig.argumentClasses[argIndex].isEnum()){
+				ParameterInjector injector = actionConfig.injectorsMap.get(actionConfig.argumentNames.get(argIndex));
+				arguments[argIndex] = initEnum(str, injector.enumOrdinals, injector.enumNames, injector.argType);
+			} else {
+				arguments[argIndex] = converterFactory.convert(actionConfig.argumentClasses[argIndex], str);
+			}
 		}
 		
 		/* 初始化内置参数（request, response, secction, cookies, RequestBody） */
@@ -363,19 +370,7 @@ class ApiExecutor {
 
 							arguments[injector.argIndex] = arr;
 						} else if(injector.isEnum){
-							String value = paramMap.get(paramName)[0];
-							
-							//索引方式
-							if(enumValuePattern.matcher(value).matches()){
-								int val = Integer.valueOf(value);
-								
-								if(injector.enumOrdinals.indexOf(val)>-1){
-									value = injector.enumNames.get(val);
-									arguments[injector.argIndex] = Enum.valueOf((Class<? extends Enum>)injector.argType, value);
-								}
-							} else if(injector.enumNames.indexOf(value) > -1){ //字符串方式
-								arguments[injector.argIndex] = Enum.valueOf((Class<? extends Enum>)injector.argType, value);
-							}
+							arguments[injector.argIndex] = initEnum(paramMap.get(paramName)[0], injector.enumOrdinals, injector.enumNames, injector.argType);
 						} else {
 							/* 简单类型直接转换 */
 							arguments[injector.argIndex] = converterFactory.convert(injector.argType,
@@ -474,5 +469,31 @@ class ApiExecutor {
 		} catch (Exception e) {
 			throw new ServletException(e);
 		}
+	}
+	
+	/**
+	 * 初始化枚举参数
+	 * @param value
+	 * @param enumOrdinals
+	 * @param enumNames
+	 * @param argType
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	private Enum<?> initEnum(String value, List<Integer> enumOrdinals, List<String> enumNames, Class<?> argType){
+		//索引方式初始化枚举
+		if(enumValuePattern.matcher(value).matches()){
+			int val = Integer.valueOf(value);
+			
+			if(enumOrdinals.indexOf(val)>-1){
+				value = enumNames.get(val);
+				return Enum.valueOf((Class<? extends Enum>)argType, value);
+			}
+		} else if(enumNames.indexOf(value) > -1){ //字符串方式初始化枚举
+			return Enum.valueOf((Class<? extends Enum>)argType, value);
+			
+		}
+		
+		return null;
 	}
 }

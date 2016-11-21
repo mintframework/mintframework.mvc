@@ -54,6 +54,7 @@ class ParameterInjector {
 	 * @param mapKeyClass 泛型第一个参数
 	 * @param mapValueClass 泛型第二个参数
 	 */
+	@SuppressWarnings("unchecked")
 	ParameterInjector(int argIndex, Class<?> argType, String argName, boolean isMapType, Class<?> mapKeyClass, Class<?> mapValueClass){
 		this.argIndex = argIndex;
 		this.argType = argType;
@@ -74,6 +75,7 @@ class ParameterInjector {
 			enumNames = new ArrayList<>();
 			isEnum = true;
 			
+			@SuppressWarnings("rawtypes")
 			Enum<?> es[] = ((Class<? extends Enum>)argType).getEnumConstants();
 			if(es!=null){
 				for(Enum<?> e : es){

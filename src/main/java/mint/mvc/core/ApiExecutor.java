@@ -22,7 +22,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import mint.mvc.annotation.MultipartConfig;
 import mint.mvc.converter.ConverterFactory;
-import mint.mvc.core.upload.FileUpload;
+import mint.mvc.core.upload.FileUploader;
 import mint.mvc.core.upload.MultipartHttpServletRequest;
 import mint.mvc.core.upload.MultipartParameter;
 import mint.mvc.renderer.ErrorRender;
@@ -60,8 +60,15 @@ class ApiExecutor {
 		log.info("Init Dispatcher...");
 		this.servletContext = config.getServletContext();
 		uploadTemp = config.getInitParameter("uploadTemp");
+		
+		//设置默认的文件上传路径
+		if(uploadTemp!=null){
+			FileUploader.setTempFilePath(uploadTemp);
+		}
+		
 		trimString = Boolean.valueOf(config.getInitParameter("trimString"));
 
+		//异常监听器
 		String exHandler = config.getInitParameter("exceptionListener");
 		if (exHandler != null && !exHandler.equals("")) {
 			try {
@@ -91,10 +98,19 @@ class ApiExecutor {
 	 */
 	Object executeApiMethod(APIContext apiContext, Object[] arguments) throws Exception {
 		// @Required 注解标注的参数不能为空
+		String tipString = null;
 		for (int i = apiContext.requires.length - 1; i > -1; i--) {
 			if (apiContext.requires[i] && arguments[i] == null) {
-				return new ErrorRender(403);
+				if(tipString == null){
+					tipString = "";
+				} else {
+					tipString += "argument [" + apiContext.argumentNames.get(i) + "] can not be null;";
+				}
 			}
+		}
+		
+		if(tipString != null){
+			return new ErrorRender(403, tipString);
 		}
 
 		try {
@@ -123,7 +139,7 @@ class ApiExecutor {
 					if (multipartConfig.maxRequestSize() <= 0
 							|| (request.getContentLength() < multipartConfig.maxRequestSize())) {
 						/* 正在上传文件 */
-						FileUpload.upload(uploadTemp, multipartConfig.attributeName(), multipartConfig.limitSize(),
+						FileUploader.upload(multipartConfig.attributeName(), multipartConfig.limitSize(),
 								request);
 						// 上传的文件通过attribute带出来
 						if (request.getAttribute(multipartConfig.attributeName()) != null) {
@@ -479,7 +495,7 @@ class ApiExecutor {
 	 * @param argType
 	 * @return
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private Enum<?> initEnum(String value, List<Integer> enumOrdinals, List<String> enumNames, Class<?> argType){
 		//索引方式初始化枚举
 		if(enumValuePattern.matcher(value).matches()){

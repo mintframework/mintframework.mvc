@@ -18,18 +18,36 @@ import javax.servlet.http.HttpServletRequest;
  * @date 2015年3月13日 下午9:30:43 
  *  
  */
-public class FileUpload {
-	private static Logger log = Logger.getLogger(FileUpload.class.getName());
-	private static Logger logger = Logger.getLogger(FileUpload.class.getName());
+public class FileUploader {
+	private static Logger log = Logger.getLogger(FileUploader.class.getName());
+	private static Logger logger = Logger.getLogger(FileUploader.class.getName());
+	private static String tempFilePath = null;
 	
 	/**
+	 * 返回文件上传临时目录
+	 * @return
+	 */
+	public static String getTempFilePath() {
+		return tempFilePath;
+	}
+
+	/**
 	 * @param tempFilePath 文件上传的临时保存路径
+	 */
+	public static void setTempFilePath(String tempFilePath){
+		if(tempFilePath==null || tempFilePath.trim().equals("")){
+			return;
+		}
+		FileUploader.tempFilePath = tempFilePath.trim();
+	}
+	
+	/**
 	 * @param attributeName 表单处理完毕后，将参数添加到request时用到的属性名，action内可以通过request.getAttribute()方法获取
 	 * @param limitSize 表单项的最大长度，小于零表示无限制
 	 * @param lock
 	 * @return
 	 */
-	public static boolean upload(String tempFilePath, String attributeName, long limitSize, HttpServletRequest request){
+	public static boolean upload( String attributeName, long limitSize, HttpServletRequest request){
 		if(attributeName == null || "".equals(attributeName)) {
 			log.warning("has no attributeName");
 			return false;

@@ -324,6 +324,7 @@ public class FileUploader {
 			tempFile = new TempFile(basepath, UUID.randomUUID().toString().replace("-", ""));
 		}
 		try {
+			tempFile.getParentFile().mkdirs();
 			tempFile.createNewFile();
 			return tempFile;
 		} catch (IOException e) {

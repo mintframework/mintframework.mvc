@@ -7,8 +7,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.channels.FileChannel;
 
-import javax.annotation.processing.FilerException;
-
 /** 
  * 文件类，添加了一个saveTo方法
  * @author LiangWei(895925636@qq.com)
@@ -44,8 +42,10 @@ public class TempFile extends File{
 		FileInputStream fin = null;
 		FileOutputStream fout = null;
 		try {
+			File file = new File(path);
+			file.getParentFile().mkdirs();
 			fin = new FileInputStream(this);
-			fout = new FileOutputStream(new File(path));
+			fout = new FileOutputStream(file);
 			
 			in = fin.getChannel();		//得到对应的文件通道
 			out = fout.getChannel();	//得到对应的文件通道
@@ -68,10 +68,6 @@ public class TempFile extends File{
 	 */
 	public void saveAs(String path, String name) throws IOException{
 		File file = new File(path);
-		if(file.exists() && file.isDirectory()){
-			saveAs(file.getAbsolutePath().replaceAll("\\\\", "/")+"/"+name);
-		} else {
-			throw new FilerException("path not a directory or not exist");
-		}
+		saveAs(file.getAbsolutePath().replaceAll("\\\\", "/")+"/"+name);
 	}
 }

@@ -90,33 +90,25 @@ public class FileUploader {
 			}
 		}
 		
-		if(boundary==null){
-			logger.warning("request header does not has a boundary");
-			return;
-		}
-		
 		List<MultipartParameter> multiParam = null;
 		FileOutputStream fileOut = null;
 		try {
-			byte[] readBuf = new byte[1024*4];
-			int readLen = 0;
-			
 			//用到的所有局部变量，为了效率，所有不在循环体内声明
 			DefaultMultipartParameter currentPart = null;
 			TempFile tempFile;
 			boolean isFile = false;
 			
-			boolean end = false;
-			String line, partInfo, mimeType = null;
+			boolean finish = false;
+			String line = null, partInfo, mimeType = null;
 			StringBuffer paramValue = new StringBuffer(512);
 			
-			/*缓存分隔符及其长度，提高性能*/
-			byte[] boundaryByte = boundary.getBytes();
-			int startBoundaryLen = boundaryByte.length+2;  	//回车 和 换行 符（\r\n）
-			int endBoundaryLen = startBoundaryLen + 2; 		//--
-			
-			readLen = inputStream.readLine(readBuf, 0, readBuf.length);
+			byte[] readBuf = new byte[1024*4];
+			int readLen = inputStream.readLine(readBuf, 0, readBuf.length);
 			line = new String(readBuf, 0, readLen);
+			
+			if(boundary==null){
+				boundary = line.trim();
+			}
 			
 			//第一行必须是分隔符
 			if(!line.startsWith(boundary)){
@@ -124,25 +116,35 @@ public class FileUploader {
 				return;
 			}
 			
-			if(line.startsWith(boundary+"--")){return;}
+			//请求体的结尾分隔符
+			String endBoundary = boundary+"--";
+			
+			//请求体的结尾
+			if(line.startsWith(endBoundary)){return;}
+			
+			/*缓存分隔符及其长度，提高性能*/
+			byte[] boundaryByte = boundary.getBytes();
+			int startBoundaryLen = boundaryByte.length+2;  	//回车 和 换行 符（\r\n）
+			int endBoundaryLen = startBoundaryLen + 2; 		//--
 			
 			multiParam = new ArrayList<MultipartParameter>();
 			long partSize = 0;
 			
-			while(!end){
-				if(!end && readLen < 0){
+			while(!finish){
+				//理论上未结束，但是没有读到数据
+				if(!finish && readLen < 0){
 					logger.warning("Multimedia requests cannot be resolved");
 					return;
 				}
 				
 				//分析头部，分析分隔符
 				//还未读取到请参数结尾
-				
 				line = new String(readBuf, 0, readLen);
-				if(!line.startsWith(boundary+"--")){
+				if(!line.startsWith(endBoundary)){
 					currentPart = new DefaultMultipartParameter();
-
-					partInfo = new String(readBuf, 0, inputStream.readLine(readBuf, 0, readBuf.length));
+					readLen = inputStream.readLine(readBuf, 0, readBuf.length);
+					partInfo = new String(readBuf, 0, readLen);
+					
 					Map<String, String> info = parsePartInfo(partInfo, null);
 					
 					if(info.get("name") == null || "".equals(info.get("name"))){
@@ -190,7 +192,7 @@ public class FileUploader {
 						isFile = false;
 					}
 				} else {
-					end = true;
+					finish = true;
 				}
 				
 				//跳过描述头和内容之间的换行符
@@ -202,24 +204,13 @@ public class FileUploader {
 				 */
 				if(isFile){
 					//解析文件内容
-					int j, i;
-					while((readLen = inputStream.readLine(readBuf, 0, readBuf.length)) > 0){
+					while((readLen = inputStream.readLine(readBuf, 0, readBuf.length)) > -1){
 						//有可能出现分隔符
 						if(readLen == startBoundaryLen || readLen == endBoundaryLen){
-							i = 0; j=0;
+							line = new String(readBuf, 0, readLen);
 							
-							//不需要比较后面的回车换行符了
-							for(; i<startBoundaryLen-2; i++){
-								if(boundaryByte[i] != readBuf[i]) {
-									j = 1;
-									break;
-								}
-							}
-							
-							//当前part分析完成，分析下一个头部
-							if(j == 0){
-								//fileOut.write(writeBuf, 0, writeLen);
-								//writeLen = 0;
+							//当前part分析完成，保存文件，准备分析下一个头部
+							if(line.startsWith(boundary)){
 								partSize = 0;
 								multiParam.add(currentPart);
 								
@@ -237,40 +228,20 @@ public class FileUploader {
 							fileOut.flush();
 						} else {
 							logger.warning("files too large");
-							end = true;
+							finish = true;
 							break;
 						}
-						
-						//先缓存再写入。在一些磁盘io资源不足的应用要开启文件缓冲功能
-						/*for(i=0; i<readLen; i++){
-							writeBuf[writeLen] = readBuf[i];	
-							writeLen += 1;
-							
-							if(writeLen == writeBuf.length){
-								fileOut.write(writeBuf, 0, writeLen);
-								writeLen = 0;
-							}
-						}*/
 					}
 				} else {
 					//解析普通内容
-					int j, i;
 					paramValue.delete(0, paramValue.length());
-					while((readLen = inputStream.readLine(readBuf, 0, readBuf.length)) > 0){
+					while((readLen = inputStream.readLine(readBuf, 0, readBuf.length)) > -1){
 						//有可能出现分隔符
 						if(readLen == startBoundaryLen || readLen == endBoundaryLen){
-							i = 0; j=0;
+							line = new String(readBuf, 0, readLen);
 							
-							//不需要比较后面的回车换行符了
-							for(; i<startBoundaryLen-2; i++){
-								if(boundaryByte[i] != readBuf[i]) {
-									j = 1;
-									break;
-								}
-							}
-							
-							//当前part分析完成，分析下一个头部
-							if(j == 0){
+							//当前part分析完成，保存参数，分析下一个头部
+							if(line.startsWith(boundary)){
 								partSize = 0;
 								currentPart.parameterValue = paramValue.toString().trim();
 								multiParam.add(currentPart);
@@ -284,7 +255,7 @@ public class FileUploader {
 							paramValue.append(new String(readBuf, 0, readLen, "utf8"));
 						} else {
 							logger.warning("too long");
-							end = true;
+							finish = true;
 							break;
 						}
 					}

@@ -389,8 +389,7 @@ class ApiExecutor {
 							arguments[injector.argIndex] = initEnum(paramMap.get(paramName)[0], injector.enumOrdinals, injector.enumNames, injector.argType);
 						} else {
 							/* 简单类型直接转换 */
-							arguments[injector.argIndex] = converterFactory.convert(injector.argType,
-									paramMap.get(paramName)[0]);
+							arguments[injector.argIndex] = converterFactory.convert(injector.argType, paramMap.get(paramName)[0]);
 						}
 					}
 				} else if (action.apiContext.hasMapParam) {

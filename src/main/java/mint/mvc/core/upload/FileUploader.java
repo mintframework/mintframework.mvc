@@ -320,6 +320,7 @@ public class FileUploader {
 		}
 		
 		TempFile tempFile = new TempFile(basepath, UUID.randomUUID().toString().replace("-", "")+suffix);
+		tempFile.originalFileName = filename;
 		while(tempFile.exists()){
 			tempFile = new TempFile(basepath, UUID.randomUUID().toString().replace("-", ""));
 		}

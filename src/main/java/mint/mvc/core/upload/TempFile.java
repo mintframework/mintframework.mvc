@@ -30,6 +30,30 @@ public class TempFile extends File{
 	public TempFile(File parent, String child) {
 		super(parent, child);
 	}
+	
+	String originalFileName = null;
+	
+	/**
+	 * get the original name of the upload file
+	 * @return
+	 */
+	public String getOriginalFileNmae(){
+		return this.originalFileName;
+	}
+	
+	/**
+	 * get the file extension of current file
+	 * @return
+	 */
+	public String getPrefix(){
+		String suffix = "",
+			filename = this.getName();
+		if(filename.indexOf(".")>-1){
+			suffix = filename.substring(filename.indexOf("."));
+		}
+		
+		return suffix;
+	}
 
 	/**
 	 * 将被文件复制到指定的目标位置

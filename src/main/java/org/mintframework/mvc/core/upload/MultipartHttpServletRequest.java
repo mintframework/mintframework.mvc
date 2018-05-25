@@ -1,4 +1,4 @@
-package mint.mvc.core.upload;
+package org.mintframework.mvc.core.upload;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -14,7 +14,7 @@ import javax.servlet.http.Part;
 
 /** 
  * 封装多媒体请求
- * @author LiangWei(895925636@qq.com)
+ * @author LiangWei(cnliangwei@foxmail.com)
  * @date 2015年3月13日 下午9:30:58 
  *  
  */

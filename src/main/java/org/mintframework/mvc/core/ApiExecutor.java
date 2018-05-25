@@ -1,4 +1,4 @@
-package mint.mvc.core;
+package org.mintframework.mvc.core;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -20,21 +20,22 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import mint.mvc.annotation.MultipartConfig;
-import mint.mvc.converter.ConverterFactory;
-import mint.mvc.core.upload.FileUploader;
-import mint.mvc.core.upload.MultipartHttpServletRequest;
-import mint.mvc.core.upload.MultipartParameter;
-import mint.mvc.renderer.ErrorRender;
-import mint.mvc.renderer.Renderer;
-import mint.mvc.renderer.TextRenderer;
-import mint.mvc.template.JspTemplateFactory;
-import mint.mvc.template.TemplateFactory;
+import org.mintframework.mvc.annotation.MultipartConfig;
+import org.mintframework.mvc.converter.ConverterFactory;
+import org.mintframework.mvc.core.upload.FileUploader;
+import org.mintframework.mvc.core.upload.MultipartHttpServletRequest;
+import org.mintframework.mvc.core.upload.MultipartParameter;
+import org.mintframework.mvc.renderer.ErrorRender;
+import org.mintframework.mvc.renderer.Renderer;
+import org.mintframework.mvc.renderer.TextRenderer;
+import org.mintframework.mvc.template.JspTemplateFactory;
+import org.mintframework.mvc.template.TemplateFactory;
+import org.mintframework.util.PropertiesMap;
 
 /**
  * action的执行者。将请求传递过来的参数经过友好的封装， 整理成action方法的参数，然后调用action方法，并且对 方法的返回值做处理后返回
  * 
- * @author LiangWei(895925636@qq.com)
+ * @author LiangWei(cnliangwei@foxmail.com)
  * @date 2015年3月13日 下午7:44:15
  *
  */
@@ -56,20 +57,20 @@ class ApiExecutor {
 	 * @param config
 	 * @throws ServletException
 	 */
-	void init(Config config) throws ServletException {
+	void init(ServletContext servletContext, PropertiesMap config) throws ServletException {
 		log.info("Init Dispatcher...");
-		this.servletContext = config.getServletContext();
-		uploadTemp = config.getInitParameter("uploadTemp");
+		this.servletContext = servletContext;
+		uploadTemp = config.get("mint.mvc.upload-temp");
 		
 		//设置默认的文件上传路径
 		if(uploadTemp!=null){
 			FileUploader.setTempFilePath(uploadTemp);
 		}
 		
-		trimString = Boolean.valueOf(config.getInitParameter("trimString"));
+		trimString = Boolean.valueOf(config.get("mint.mvc.trim-string"));
 
 		//异常监听器
-		String exHandler = config.getInitParameter("exceptionListener");
+		String exHandler = config.get("mint.mvc.global-exception-handler");
 		if (exHandler != null && !exHandler.equals("")) {
 			try {
 				exceptionListener = (ExceptionListener) Class.forName(exHandler).newInstance();
@@ -213,15 +214,15 @@ class ApiExecutor {
 	/**
 	 * @param config
 	 */
-	void initAll(Config config) {
+	void initAll(PropertiesMap config) {
 		initTemplateFactory(config);
 	}
 
 	/**
 	 * @param config
 	 */
-	private void initTemplateFactory(Config config) {
-		String name = config.getInitParameter("template");
+	private void initTemplateFactory(PropertiesMap config) {
+		String name = config.get("mint.mvc.template");
 		if (name == null) {
 			name = JspTemplateFactory.class.getName();
 			log.info("No template factory specified. Default to '" + name + "'.");

@@ -1,4 +1,4 @@
-package mint.mvc.core;
+package org.mintframework.mvc.core;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -9,14 +9,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import mint.mvc.annotation.API;
-import mint.mvc.annotation.Module;
-import mint.mvc.annotation.ServiceNames;
-import mint.mvc.util.GetArgumentName;
+import org.mintframework.mvc.annotation.API;
+import org.mintframework.mvc.annotation.Module;
+import org.mintframework.mvc.annotation.ApiServices;
+import org.mintframework.mvc.util.GetArgumentName;
 
 /**
  * action 探测器。用来从指定实体中找到多有的action实体，并找到所有的action 方法（带Mapping）的方法
- * @author LiangWei(895925636@qq.com)
+ * @author LiangWei(cnliangwei@foxmail.com)
  * @date 2015年3月13日 下午7:43:43 
  */
 class APIDetector {
@@ -65,16 +65,16 @@ class APIDetector {
 			if (isActionMethod(apiMethod)) {
 				apiConfig = apiMethod.getAnnotation(API.class);
 				urls = apiConfig.urls();
-				ServiceNames service;
+				ApiServices service;
 				
 				for(String url : urls){
-					url = baseUrl + url;
-					
+					url = baseUrl + "/" + url;
+
 					UrlMatcher 	matcher = new UrlMatcher(url, apiMethod);
 					/*如果pattern为空，则说明该api方法无法被访问到*/
 					if(matcher.pattern != null){
-						log.info("Mapping url '" + url + "' to method '" + apiMethod.toGenericString() + "'.");
-						service = apiMethod.getAnnotation(ServiceNames.class);
+						log.info("Mapping url '" + matcher.url + "' to method '" + apiMethod.toGenericString() + "'.");
+						service = apiMethod.getAnnotation(ApiServices.class);
 						List<String> argNames = GetArgumentName.getArgumentNames(apiMethod);
 						
 						APIConfig api = new APIConfig(

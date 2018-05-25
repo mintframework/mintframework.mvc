@@ -1,4 +1,4 @@
-package mint.mvc.annotation;
+package org.mintframework.mvc.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

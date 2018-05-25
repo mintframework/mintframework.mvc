@@ -1,4 +1,4 @@
-package mint.mvc.util;
+package org.mintframework.mvc.util;
  
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
@@ -16,7 +16,7 @@ import java.util.Set;
 /**
  * 通过读取Class文件,获得方法形参名称列表
  * @author wendal(wendal1985@gmail.com)
- * @author LiangWei(895925636@qq.com)
+ * @author LiangWei(cnliangwei@foxmail.com)
  * @date 2015年3月13日 下午9:19:48 
  *
  */

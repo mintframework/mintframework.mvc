@@ -1,4 +1,4 @@
-package mint.mvc.core;
+package org.mintframework.mvc.core;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -6,10 +6,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import mint.mvc.annotation.Module;
-import mint.mvc.annotation.InterceptorConfig;
-import mint.mvc.annotation.ServiceConfig;
-import mint.mvc.util.ClassScaner;
+import org.mintframework.mvc.annotation.ApiService;
+import org.mintframework.mvc.annotation.InterceptorConfig;
+import org.mintframework.mvc.annotation.Module;
+import org.mintframework.mvc.util.ClassScaner;
+import org.mintframework.util.PropertiesMap;
 
 /**
  * 
@@ -24,7 +25,7 @@ class ComponentScaner {
 	Set<Class<Interceptor>> interceptorClasses;
 	Set<Class<?>> moduleClass;
 	Set<Class<Service>> serviceClasses;
-	Set<ServiceConfig> services;
+	Set<ApiService> services;
 	Set<InterceptorConfig> interceptors;
 	
 	/**
@@ -32,10 +33,11 @@ class ComponentScaner {
 	 * @param config
 	 */
 	@SuppressWarnings("unchecked")
-	ComponentScaner(Config config){
+	ComponentScaner(PropertiesMap config){
 		ClassScaner sc = new ClassScaner(config.getClass().getClassLoader());
 		
-		String param = config.getInitParameter("componentPackages");
+		String param = config.get("mint.mvc.component-packages");
+
 		
 		if(param != null && !param.equals("")) {
 			Set<String> componentNames = new HashSet<String>();
@@ -43,7 +45,7 @@ class ComponentScaner {
 			for(String pkg : param.split(";")){
 				componentNames.addAll(sc.getClassnameFromPackage(pkg.trim(), true));
 			}
-			
+
 			Class<?> clazz;
 			
 			interceptorClasses =  new HashSet<Class<Interceptor>>();
@@ -67,7 +69,7 @@ class ComponentScaner {
 								break;
 							}
 						}
-					} else if(clazz.getAnnotation(ServiceConfig.class) != null){
+					} else if(clazz.getAnnotation(ApiService.class) != null){
 						//识别服务
 						for(Class<?> parent = clazz.getSuperclass(); parent != null; parent = parent.getSuperclass()){
 							if(parent.equals(Service.class)){
@@ -119,7 +121,7 @@ class ComponentScaner {
 			Service sis = null;
 			String name;
 			for(Class<?> cls : serviceClasses){
-				name = cls.getAnnotation(ServiceConfig.class).name().trim();
+				name = cls.getAnnotation(ApiService.class).name().trim();
 				
 				if(!"".equals(name)){
 					try {
@@ -162,11 +164,11 @@ class ComponentScaner {
 	 * 获取service的注解配置
 	 * @return
 	 */
-	Set<ServiceConfig> getServiceConfigs(){
+	Set<ApiService> getServiceConfigs(){
 		if(serviceClasses.size()>0){
-			services = new HashSet<ServiceConfig>();
+			services = new HashSet<ApiService>();
 			for(Class<Service> s: serviceClasses){
-				services.add(s.getAnnotation(ServiceConfig.class));
+				services.add(s.getAnnotation(ApiService.class));
 			}
 			return services;
 		} else {

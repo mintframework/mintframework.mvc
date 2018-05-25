@@ -1,4 +1,4 @@
-package mint.mvc.core;
+package org.mintframework.mvc.core;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -9,17 +9,19 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 
-import mint.mvc.annotation.InterceptorConfig;
+import org.mintframework.mvc.annotation.InterceptorConfig;
+import org.mintframework.util.PropertiesMap;
 
 /**
  * Dispatcher handles ALL requests from clients, and dispatches to appropriate
  * handler to handle each request.
  * 
  * @author Michael Liao (askxuefeng@gmail.com)
- * @author LiangWei(895925636@qq.com)
+ * @author LiangWei(cnliangwei@foxmail.com)
  * @date 2015年3月13日 下午9:07:16 
  *
  */
@@ -27,14 +29,15 @@ class Dispatcher {
 	private Logger log = Logger.getLogger(this.getClass().getName());
 	private Map<String, Map<UrlMatcher, APIContext>> urlMapMap = new HashMap<String, Map<UrlMatcher, APIContext>>();
 	private Map<String, UrlMatcher[]> matchersMap = new HashMap<String, UrlMatcher[]>();
-	
+	private Boolean interceptStatic = false;
+
 	/**
 	 * 拦截器
 	 */
 	private List<Interceptor>		uriInterceptors = new ArrayList<Interceptor>();
 	private Map<String, Service> 	servicesMap = new HashMap<String, Service>();
 	
-	void init(Config config) throws ServletException {
+	void init(ServletContext context, PropertiesMap config) throws ServletException {
 		log.info("Init Dispatcher...");
 		try {
 			initAll(config);
@@ -88,6 +91,10 @@ class Dispatcher {
 				break;
 			}
 		}
+
+		if(actionConfig == null && !this.interceptStatic){
+			return null;
+		}
 		
 		//查找处理请求的拦截器
 		//uri拦截器
@@ -126,12 +133,18 @@ class Dispatcher {
 	 * @param config
 	 * @throws Exception
 	 */
-	private void initAll(Config config) throws Exception {
+	private void initAll(PropertiesMap config) throws Exception {
 		initComponents(config);
 	}
 
 	/* 初始化action */
-	private void initComponents(Config config) {
+	private void initComponents(PropertiesMap config) {
+		interceptStatic = config.getBoolean("mint.mvc.intercept-static");
+
+		if(interceptStatic==null){
+			interceptStatic = false;
+		}
+
 		ComponentScaner componentScaner = new ComponentScaner(config);
 		
 		/* 初始化action */
@@ -179,13 +192,13 @@ class Dispatcher {
 		servicesMap = componentScaner.getServiceObjects();
 		
 		//初始化组件报告器
-		String cr = config.getInitParameter("componentReportor");
+		String cr = config.get("mint.mvc.startup-listener");
 		if(cr!=null && !"".equals(cr.trim())){
 			try {
 				Class<?> clazz = Class.forName(cr, false, this.getClass().getClassLoader());
 				
-				if(ComponentReportor.class.isAssignableFrom(clazz)){
-					ComponentReportor componentReportor = (ComponentReportor) clazz.newInstance();
+				if(StartupListener.class.isAssignableFrom(clazz)){
+					StartupListener componentReportor = (StartupListener) clazz.newInstance();
 					componentReportor.report(ad.modules, componentScaner.getServiceConfigs(), componentScaner.getInterceptorConfig());
 				}
 				

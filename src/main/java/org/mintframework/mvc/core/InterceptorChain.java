@@ -1,4 +1,4 @@
-package mint.mvc.core;
+package org.mintframework.mvc.core;
 
 /**
  * Holds all interceptors as a chain.

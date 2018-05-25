@@ -1,4 +1,4 @@
-package mint.mvc.converter;
+package org.mintframework.mvc.converter;
 
 /**
  * Convert String to Integer.

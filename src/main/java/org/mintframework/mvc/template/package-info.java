@@ -2,4 +2,4 @@
  * Template engine interface and build-in implementations of WebWind. It 
  * provides Jsp and Velocity support by default.
  */
-package mint.mvc.template;
+package org.mintframework.mvc.template;

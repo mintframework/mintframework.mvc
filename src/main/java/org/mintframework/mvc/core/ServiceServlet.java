@@ -1,11 +1,10 @@
-package mint.mvc.core;
+package org.mintframework.mvc.core;
 
 import java.io.IOException;
 import java.util.logging.Logger;
 
 import javax.servlet.AsyncContext;
 import javax.servlet.ServletConfig;
-import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -14,13 +13,16 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.mintframework.util.PropertiesMap;
+import org.mintframework.util.PropertiesUtil;
+
 /**
  * 
  * DispatcherServlet must be mapped to root URL "/". It handles ALL requests 
  * from clients, and dispatches to appropriate handler to handle each request.
  * 
  * @author Michael Liao (askxuefeng@gmail.com)
- * @author LiangWei(895925636@qq.com)
+ * @author LiangWei(cnliangwei@foxmail.com)
  * @date 2015年3月13日 下午9:10:43 
  *
  */
@@ -34,7 +36,7 @@ public class ServiceServlet extends HttpServlet {
 	private StaticFileHandler staticFileHandler;
 	private ApiExecutor actionExecutor;
 	
-	private boolean handleStatic = true;
+	private Boolean handleStatic = true;
 	
 	/* (non-Javadoc)
 	 * @see javax.servlet.GenericServlet#init(javax.servlet.ServletConfig)
@@ -46,22 +48,17 @@ public class ServiceServlet extends HttpServlet {
 		this.dispatcher = new Dispatcher();
 		this.actionExecutor = new ApiExecutor();
 		
-		Config config = new Config() {
-			public String getInitParameter(String name) {
-				return servletConfig.getInitParameter(name);
-			}
-
-			public ServletContext getServletContext() {
-				return servletConfig.getServletContext();
-			}
-		};
+		PropertiesMap pmap = PropertiesUtil.load("mintframework.properties", null, true);
 		
-		this.handleStatic = Boolean.valueOf(servletConfig.getInitParameter("handleStatic"));
-		this.dispatcher.init(config);
-		this.actionExecutor.init(config);
+		this.handleStatic = pmap.getBoolean("mint.mvc.handle-static");
+		if(this.handleStatic == null) {
+			this.handleStatic = false;
+		}
+		this.dispatcher.init(servletConfig.getServletContext(), pmap);
+		this.actionExecutor.init(servletConfig.getServletContext(), pmap);
 		
 		if(handleStatic){
-			this.staticFileHandler = new StaticFileHandler(servletConfig);
+			this.staticFileHandler = new StaticFileHandler(servletConfig, pmap);
 		}
 		RequestContext.setWebRoot(servletConfig.getServletContext().getContextPath());
 	}

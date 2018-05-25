@@ -1,10 +1,10 @@
-package mint.mvc.core;
+package org.mintframework.mvc.core;
 
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import mint.mvc.annotation.InterceptorConfig;
+import org.mintframework.mvc.annotation.InterceptorConfig;
 
 
 /**
@@ -15,7 +15,7 @@ import mint.mvc.annotation.InterceptorConfig;
  * rendering view.
  * 
  * @author Michael Liao (askxuefeng@gmail.com)
- * @author LiangWei(895925636@qq.com)
+ * @author LiangWei(cnliangwei@foxmail.com)
  * @date 2015年3月13日 下午9:08:52 
  *
  */

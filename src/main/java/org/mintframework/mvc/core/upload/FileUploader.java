@@ -1,4 +1,4 @@
-package mint.mvc.core.upload;
+package org.mintframework.mvc.core.upload;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 
 /** 
  * 文件上传的工具类
- * @author LiangWei(895925636@qq.com)
+ * @author LiangWei(cnliangwei@foxmail.com)
  * @date 2015年3月13日 下午9:30:43 
  *  
  */

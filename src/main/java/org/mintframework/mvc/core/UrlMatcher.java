@@ -1,4 +1,4 @@
-package mint.mvc.core;
+package org.mintframework.mvc.core;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -7,8 +7,8 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import mint.mvc.converter.ConverterFactory;
-import mint.mvc.util.GetArgumentName;
+import org.mintframework.mvc.converter.ConverterFactory;
+import org.mintframework.mvc.util.GetArgumentName;
 
 /**
  * 
@@ -16,7 +16,7 @@ import mint.mvc.util.GetArgumentName;
  * The maximum number of parameters is 10(from 0 to 10).
  * 
  * @author Michael Liao (askxuefeng@gmail.com)
- * @author LiangWei(895925636@qq.com)
+ * @author LiangWei(cnliangwei@foxmail.com)
  * @date 2015年3月13日 下午9:12:42
  *
  */
@@ -40,6 +40,13 @@ final class UrlMatcher {
 	 */
 	UrlMatcher(String url, Method actMethod) {
 		List<String> argNames = GetArgumentName.getArgumentNames(actMethod);
+		
+		if(url.length()>0 && !url.startsWith("/")) {
+			url = "/"+url;
+		}
+		
+		url = url.replaceAll("/+", "/");
+		
 		this.url = url;
 
 		List<String> urlParamNames = new ArrayList<String>();

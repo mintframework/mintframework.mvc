@@ -1,4 +1,4 @@
-package mint.mvc.renderer;
+package org.mintframework.mvc.renderer;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -7,12 +7,12 @@ import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import mint.mvc.template.TemplateFactory;
+import org.mintframework.mvc.template.TemplateFactory;
 
 /**
  * Render output using template engine.
  * @author Michael Liao (askxuefeng@gmail.com)
- * @author LiangWei(895925636@qq.com)
+ * @author LiangWei(cnliangwei@foxmail.com)
  * @date 2015年3月13日 下午9:15:02 
  *
  */

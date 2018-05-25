@@ -1,4 +1,4 @@
-package mint.mvc.core;
+package org.mintframework.mvc.core;
 
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
@@ -13,11 +13,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import mint.mvc.converter.ConverterFactory;
+import org.mintframework.mvc.converter.ConverterFactory;
 
 /**
  * 参数注射器，负责把前台参数注射入对应的对象内部
- * @author LiangWei(895925636@qq.com)
+ * @author LiangWei(cnliangwei@foxmail.com)
  * @date 2015年3月13日 下午9:09:34 
  *
  */

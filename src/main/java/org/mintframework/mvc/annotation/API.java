@@ -1,4 +1,4 @@
-package mint.mvc.annotation;
+package org.mintframework.mvc.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -27,7 +27,7 @@ import java.lang.annotation.Target;
  *     }
  * }
  * </pre>
- * @author LiangWei(895925636@qq.com)
+ * @author LiangWei(cnliangwei@foxmail.com)
  * @date 2015年3月13日 下午9:24:42 
  *
  */

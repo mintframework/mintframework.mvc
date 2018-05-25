@@ -1,4 +1,4 @@
-package mint.mvc.renderer;
+package org.mintframework.mvc.renderer;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletResponse;
  * image, or any binary type.
  * 
  * @author Michael Liao (askxuefeng@gmail.com)
- * @author LiangWei(895925636@qq.com)
+ * @author LiangWei(cnliangwei@foxmail.com)
  * @date 2015年3月13日 下午9:14:06
  *
  */

@@ -1,4 +1,4 @@
-package mint.mvc.core;
+package org.mintframework.mvc.core;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;

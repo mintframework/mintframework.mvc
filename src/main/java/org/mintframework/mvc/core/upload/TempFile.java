@@ -1,4 +1,4 @@
-package mint.mvc.core.upload;
+package org.mintframework.mvc.core.upload;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -9,7 +9,7 @@ import java.nio.channels.FileChannel;
 
 /** 
  * 文件类，添加了一个saveTo方法
- * @author LiangWei(895925636@qq.com)
+ * @author LiangWei(cnliangwei@foxmail.com)
  * @date 2015年8月9日 下午15:30:43 
  */
 public class TempFile extends File{

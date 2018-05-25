@@ -1,4 +1,4 @@
-package mint.mvc.core;
+package org.mintframework.mvc.core;
 
 import java.io.File;
 import java.io.IOException;
@@ -9,14 +9,15 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import mint.mvc.renderer.FileRenderer;
+import org.mintframework.mvc.renderer.FileRenderer;
+import org.mintframework.util.PropertiesMap;
 
 /**
  * 
  * Handle static file request.
  * 
  * @author Michael Liao (askxuefeng@gmail.com)
- * @author LiangWei(895925636@qq.com)
+ * @author LiangWei(cnliangwei@foxmail.com)
  * @date 2015年3月13日 下午9:12:08 
  *
  */
@@ -33,11 +34,11 @@ class StaticFileHandler {
 	 * @param config
 	 * @throws ServletException
 	 */
-	StaticFileHandler(ServletConfig config) throws ServletException {
+	StaticFileHandler(ServletConfig config, PropertiesMap pmap) throws ServletException {
 		this.servletContext = config.getServletContext();
 		this.CONTEXTPATH = config.getServletContext().getContextPath();
 		
-		staticBase = config.getInitParameter("staticBase");
+		staticBase = pmap.get("mint.mvc.static-base");
 		
 		/*
 		 * 自定义静态文件的存储路径
@@ -59,8 +60,8 @@ class StaticFileHandler {
 		/*
 		 * 静态文件的缓存设置
 		 */
-		String 	cc = config.getInitParameter("staticFileCacheControl"),
-				lmfc = config.getInitParameter("staticFileLastModifiedCheck");
+		String 	cc = pmap.get("mint.mvc.static-file-cache-control"),
+				lmfc = pmap.get("mint.mvc.static-file-last-modified-check");
 		
 		if(cc != null){
 			cacheControl = cc;

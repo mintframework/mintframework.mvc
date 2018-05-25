@@ -1,10 +1,10 @@
-package mint.mvc.core;
+package org.mintframework.mvc.core;
 
-import mint.mvc.annotation.ServiceConfig;
+import org.mintframework.mvc.annotation.ApiService;
 
 public abstract class Service {
 	boolean initService(){
-		ServiceConfig si = this.getClass().getAnnotation(ServiceConfig.class);
+		ApiService si = this.getClass().getAnnotation(ApiService.class);
 		
 		if(si == null){
 			return false;

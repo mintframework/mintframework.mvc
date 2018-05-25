@@ -3,8 +3,8 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
-	<name>mvc</name>
-	<groupId>mint</groupId>
+	<name>org.mintframework.mvc</name>
+	<groupId>org.mintframework</groupId>
 	<artifactId>mvc</artifactId>
 	<packaging>jar</packaging>
 	<version>1.0</version>
@@ -27,6 +27,7 @@
 		</dependency>
 	</dependencies>
 	<build>
+		<finalName>org.mintframework.mvc-${version}</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

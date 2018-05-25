@@ -1,4 +1,4 @@
-package mint.mvc.core.upload;
+package org.mintframework.mvc.core.upload;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 
 /** 
  * 封装多媒体请求参数的类
- * @author LiangWei(895925636@qq.com)
+ * @author LiangWei(cnliangwei@foxmail.com)
  * @date 2015年3月13日 下午9:29:10 
  *  
  */

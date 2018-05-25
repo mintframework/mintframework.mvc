@@ -1,4 +1,4 @@
-package mint.mvc.core;
+package org.mintframework.mvc.core;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;

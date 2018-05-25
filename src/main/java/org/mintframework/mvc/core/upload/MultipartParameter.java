@@ -1,10 +1,10 @@
-package mint.mvc.core.upload;
+package org.mintframework.mvc.core.upload;
 
 import javax.servlet.http.Part;
 
 /** 
  * 
- * @author LiangWei(895925636@qq.com)
+ * @author LiangWei(cnliangwei@foxmail.com)
  * @date 2015年3月13日 下午9:31:59 
  *  
  */

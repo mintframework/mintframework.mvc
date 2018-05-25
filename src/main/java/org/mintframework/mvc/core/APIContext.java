@@ -1,4 +1,4 @@
-package mint.mvc.core;
+package org.mintframework.mvc.core;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -16,9 +16,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import mint.mvc.annotation.MultipartConfig;
-import mint.mvc.annotation.Required;
-import mint.mvc.converter.ConverterFactory;
+import org.mintframework.mvc.annotation.MultipartConfig;
+import org.mintframework.mvc.annotation.Required;
+import org.mintframework.mvc.converter.ConverterFactory;
 
 /**
  * Internal class which holds object instance, method and arguments' types.

@@ -1,14 +1,14 @@
-package mint.mvc.template;
+package org.mintframework.mvc.template;
 
 import java.util.logging.Logger;
 
-import mint.mvc.core.Config;
+import org.mintframework.util.PropertiesMap;
 
 /**
  * 
  * TemplateFactory which holds the singleton instance of TemplateFactory.
  * @author Michael Liao (askxuefeng@gmail.com)
- * @author LiangWei(895925636@qq.com)
+ * @author LiangWei(cnliangwei@foxmail.com)
  * @date 2015年3月13日 下午9:18:32 
  */
 public abstract class TemplateFactory {
@@ -32,7 +32,7 @@ public abstract class TemplateFactory {
     /**
      * Init TemplateFactory.
      */
-    public abstract void init(Config config);
+    public abstract void init(PropertiesMap config);
 
     /**
      * Load Template from path.

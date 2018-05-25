@@ -1,4 +1,4 @@
-package mint.mvc.renderer;
+package org.mintframework.mvc.renderer;
 
 import java.io.PrintWriter;
 

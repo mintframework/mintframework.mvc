@@ -1,14 +1,14 @@
-package mint.mvc.core;
+package org.mintframework.mvc.core;
 
 import java.util.logging.Logger;
 
-import mint.mvc.template.TemplateFactory;
+import org.mintframework.mvc.template.TemplateFactory;
 
 /**
  * Utils for create ContainerFactory, TemplateFactory, etc.
  * 
  * @author Michael Liao (askxuefeng@gmail.com)
- * @author LiangWei(895925636@qq.com)
+ * @author LiangWei(cnliangwei@foxmail.com)
  * @date 2015年3月13日 下午9:13:20
  *
  */

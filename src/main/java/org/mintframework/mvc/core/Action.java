@@ -1,11 +1,11 @@
-package mint.mvc.core;
+package org.mintframework.mvc.core;
 
 import java.util.List;
 
 /**
  * 
  * action的配置信息
- * @author LiangWei(895925636@qq.com)
+ * @author LiangWei(cnliangwei@foxmail.com)
  * @date 2015年3月13日 下午7:43:05 
  *
  */

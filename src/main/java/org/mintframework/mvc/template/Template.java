@@ -1,4 +1,4 @@
-package mint.mvc.template;
+package org.mintframework.mvc.template;
 
 import java.util.Map;
 
@@ -8,7 +8,7 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * Template interface.
  * @author Michael Liao (askxuefeng@gmail.com)
- * @author LiangWei(895925636@qq.com)
+ * @author LiangWei(cnliangwei@foxmail.com)
  * @date 2015年3月13日 下午9:17:58 
  *
  */

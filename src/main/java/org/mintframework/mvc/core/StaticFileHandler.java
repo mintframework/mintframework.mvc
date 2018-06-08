@@ -9,6 +9,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import java.util.logging.Logger;
+
 import org.mintframework.mvc.renderer.FileRenderer;
 import org.mintframework.util.PropertiesMap;
 
@@ -28,6 +30,8 @@ class StaticFileHandler {
 	private final String CONTEXTPATH;
 	private String staticBase;
 	
+	private Logger log = Logger.getLogger(this.getClass().getName());
+
 	//private final String webRoot;
 
 	/**
@@ -39,7 +43,7 @@ class StaticFileHandler {
 		this.CONTEXTPATH = config.getServletContext().getContextPath();
 		
 		staticBase = pmap.get("mint.mvc.static-base");
-		
+
 		/*
 		 * 自定义静态文件的存储路径
 		 */
@@ -50,12 +54,18 @@ class StaticFileHandler {
 		
 		if(staticBase==null || "".equals(staticBase.trim()) || (staticBase.trim().toUpperCase()).startsWith(WEBINFPATH.toUpperCase())){
 			staticBase = WEBROOT;
+		} else if(staticBase.startsWith("webroot:/")){
+			staticBase = staticBase.replace("webroot:", WEBROOT);
+		} else if(staticBase.startsWith("webroot:")) {
+			staticBase = staticBase.replace("webroot:", WEBROOT+"/");
 		}
 		staticBase = staticBase.replace(sep, "/");
 		
 		if(staticBase.endsWith("/")){
 			staticBase = staticBase.substring(0, staticBase.length()-1);
 		}
+
+		log.info("set static-base to : "+ staticBase);
 		
 		/*
 		 * 静态文件的缓存设置

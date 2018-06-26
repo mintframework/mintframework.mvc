@@ -17,7 +17,7 @@ class Action {
 	final List<Service>			services;
 	
 	Action(APIContext actionConfig, String[] urlParams, String uri, List<Interceptor> interceptors, List<Service> services){
-		this.apiContext 		= actionConfig;
+		this.apiContext 	= actionConfig;
 		this.urlParams 		= urlParams;
 		this.uri			= uri;
 		this.interceptors 	= interceptors;

@@ -35,7 +35,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface API {
 	String[] 	urls()		default "";
-	String[] 	method()	default "";
+	String[] 	methods()	default "";
 	String 		protocol()	default "http";
 
 	String 		desc()		default "";

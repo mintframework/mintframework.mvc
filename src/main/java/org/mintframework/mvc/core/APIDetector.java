@@ -81,7 +81,7 @@ class APIDetector {
 							apiConfig.urls(), 
 							apiConfig.id(), 
 							apiConfig.name(), 
-							apiConfig.method(), 
+							apiConfig.methods(), 
 							apiConfig.protocol(), 
 							apiConfig.desc(), 
 							apiConfig.tags(),
@@ -91,9 +91,9 @@ class APIDetector {
 						apis.add(api);
 						
 						if(service!=null){
-							addApi(matcher, new APIContext(moduleBean, apiMethod, argNames, matcher.urlArgumentOrder, service.value(), module, api), apiConfig.method());
+							addApi(matcher, new APIContext(moduleBean, apiMethod, argNames, matcher.urlArgumentOrder, service.value(), module, api), apiConfig.methods());
 						} else {
-							addApi(matcher, new APIContext(moduleBean, apiMethod, argNames, matcher.urlArgumentOrder, null, module, api), apiConfig.method());
+							addApi(matcher, new APIContext(moduleBean, apiMethod, argNames, matcher.urlArgumentOrder, null, module, api), apiConfig.methods());
 						}
 					}
 				}

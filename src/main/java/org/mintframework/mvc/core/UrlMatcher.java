@@ -124,7 +124,12 @@ final class UrlMatcher {
 			matcher.appendTail(sb);
 
 			/* "/user/name" 和 "/user/name/" 都可以匹配 */
-			this.pattern = Pattern.compile(sb.toString() + "[/]?$");
+			if(sb.toString().endsWith("/")) {
+				sb.setLength(sb.length()-1);
+				this.pattern = Pattern.compile(sb.toString() + "[/]?$");
+			} else {
+				this.pattern = Pattern.compile(sb.toString() + "[/]?$");
+			}
 		} else {
 			this.pattern = null;
 		}

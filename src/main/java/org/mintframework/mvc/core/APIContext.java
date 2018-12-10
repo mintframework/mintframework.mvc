@@ -182,7 +182,7 @@ class APIContext {
 						//是否有第一个泛型
 						if(argTypes.length>0){
 							try {
-								mapKeyClass = Class.forName(argTypes[0].getTypeName());
+								mapKeyClass = Class.forName(argTypes[0].toString().replace("class ", ""));
 							} catch (ClassNotFoundException e) {
 								e.printStackTrace();
 								continue;
@@ -203,7 +203,7 @@ class APIContext {
 						//是否有第二个泛型
 						if(argTypes.length==2){
 							try {
-								mapValueClass = Class.forName(argTypes[1].getTypeName());
+								mapValueClass = Class.forName(argTypes[1].toString().replace("class ", ""));
 							} catch (ClassNotFoundException e) {
 								e.printStackTrace();
 								continue;

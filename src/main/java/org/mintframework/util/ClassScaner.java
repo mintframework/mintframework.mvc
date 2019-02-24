@@ -1,8 +1,9 @@
-package org.mintframework.mvc.util;
+package org.mintframework.util;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.JarURLConnection;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Enumeration;
@@ -40,7 +41,11 @@ public final class ClassScaner {
 		if (url != null) {
 			String protocol = url.getProtocol();
 			if (protocol.equals("file")) {
-				classNames.addAll(getClassNameFromDir(url.getPath(), packageName, isRecursion));
+				try {
+					classNames.addAll(getClassNameFromDir(url.toURI().getPath(), packageName, isRecursion));
+				} catch (URISyntaxException e) {
+					e.printStackTrace();
+				}
 			} else if (protocol.equals("jar")) {
 				JarFile jarFile = null;
 				try{

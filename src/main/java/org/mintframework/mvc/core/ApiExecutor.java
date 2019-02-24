@@ -21,7 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.mintframework.mvc.annotation.MultipartConfig;
-import org.mintframework.mvc.converter.ConverterFactory;
+import org.mintframework.mvc.converter.ParameterConverterFactory;
 import org.mintframework.mvc.core.upload.FileUploader;
 import org.mintframework.mvc.core.upload.MultipartHttpServletRequest;
 import org.mintframework.mvc.core.upload.MultipartParameter;
@@ -44,7 +44,7 @@ class ApiExecutor {
 	private ServletContext servletContext;
 	private ExceptionListener exceptionListener;
 
-	private ConverterFactory converterFactory = new ConverterFactory();
+	private ParameterConverterFactory converterFactory = new ParameterConverterFactory();
 
 	private String uploadTemp;
 

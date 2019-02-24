@@ -9,7 +9,7 @@ import java.util.logging.Logger;
 import org.mintframework.mvc.annotation.ApiService;
 import org.mintframework.mvc.annotation.InterceptorConfig;
 import org.mintframework.mvc.annotation.Module;
-import org.mintframework.mvc.util.ClassScaner;
+import org.mintframework.util.ClassScaner;
 import org.mintframework.util.PropertiesMap;
 
 /**

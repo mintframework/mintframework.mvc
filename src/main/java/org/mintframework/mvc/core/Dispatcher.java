@@ -2,6 +2,7 @@ package org.mintframework.mvc.core;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -174,7 +175,7 @@ class Dispatcher {
 			uriInterceptors.addAll(itset);
 		}
 		// url拦截器 拦截器排序
-		uriInterceptors.sort(new Comparator<Interceptor>() {	
+		Collections.sort(uriInterceptors, new Comparator<Interceptor>() {	
 			public int compare(Interceptor i1, Interceptor i2) {
 				InterceptorConfig o1 = i1.getClass().getAnnotation(InterceptorConfig.class);
 				InterceptorConfig o2 = i2.getClass().getAnnotation(InterceptorConfig.class);

@@ -7,7 +7,7 @@ import java.math.BigInteger;
  * 
  * @author Michael Liao (askxuefeng@gmail.com)
  */
-public class BigIntegerConverter implements Converter<BigInteger> {
+public class BigIntegerConverter implements ParameterConverter<BigInteger> {
 
 	public BigInteger convert(String s) {
     	if("".equals(s.trim())){
@@ -15,4 +15,10 @@ public class BigIntegerConverter implements Converter<BigInteger> {
     	}
         return new BigInteger(s);
     }
+
+	@Override
+	public boolean canConvert(Class<?> clazz) {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }

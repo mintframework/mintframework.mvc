@@ -18,7 +18,7 @@ import javax.servlet.http.HttpSession;
 
 import org.mintframework.mvc.annotation.MultipartConfig;
 import org.mintframework.mvc.annotation.Required;
-import org.mintframework.mvc.converter.ConverterFactory;
+import org.mintframework.mvc.converter.ParameterConverterFactory;
 
 /**
  * Internal class which holds object instance, method and arguments' types.
@@ -194,7 +194,7 @@ class APIContext {
 						}
 						
 						//检测泛型是否可以转换
-						if(!(new ConverterFactory()).canConvert(mapKeyClass)){
+						if(!(new ParameterConverterFactory()).canConvert(mapKeyClass)){
 							logger.warning(apiMethod.toGenericString() + " include unsupported Map parameterizedType "
 								+ mapKeyClass.getName() + ", support only  primitive type or String");
 							continue;
@@ -215,7 +215,7 @@ class APIContext {
 						}
 						
 						//检测泛型是否可以转换
-						if(!(new ConverterFactory()).canConvert(mapValueClass)){
+						if(!(new ParameterConverterFactory()).canConvert(mapValueClass)){
 							logger.warning(apiMethod.toGenericString() + " include unsupported Map parameterizedType "
 								+ mapValueClass.getName() + ", support only  primitive type or String");
 							continue;

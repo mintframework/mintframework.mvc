@@ -5,7 +5,7 @@ package org.mintframework.mvc.converter;
  * 
  * @author Michael Liao (askxuefeng@gmail.com)
  */
-public class LongConverter implements Converter<Long> {
+public class LongConverter implements ParameterConverter<Long> {
 
     public Long convert(String s) {
     	if("".equals(s.trim())){
@@ -14,5 +14,11 @@ public class LongConverter implements Converter<Long> {
     	
         return Long.parseLong(s);
     }
+
+	@Override
+	public boolean canConvert(Class<?> clazz) {
+		// TODO Auto-generated method stub
+		return false;
+	}
 
 }

@@ -5,7 +5,7 @@ package org.mintframework.mvc.converter;
  * 
  * @author Michael Liao (askxuefeng@gmail.com)
  */
-public class ShortConverter implements Converter<Short> {
+public class ShortConverter implements ParameterConverter<Short> {
 
     public Short convert(String s) {
     	if("".equals(s.trim())){
@@ -13,5 +13,11 @@ public class ShortConverter implements Converter<Short> {
     	}
         return Short.parseShort(s);
     }
+
+	@Override
+	public boolean canConvert(Class<?> clazz) {
+		// TODO Auto-generated method stub
+		return false;
+	}
 
 }

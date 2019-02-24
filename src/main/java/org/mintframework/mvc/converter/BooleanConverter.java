@@ -5,10 +5,16 @@ package org.mintframework.mvc.converter;
  * 
  * @author Michael Liao (askxuefeng@gmail.com)
  */
-public class BooleanConverter implements Converter<Boolean> {
+public class BooleanConverter implements ParameterConverter<Boolean> {
 
     public Boolean convert(String s) {
         return Boolean.parseBoolean(s);
     }
+
+	@Override
+	public boolean canConvert(Class<?> clazz) {
+		// TODO Auto-generated method stub
+		return false;
+	}
 
 }

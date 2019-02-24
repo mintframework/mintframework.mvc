@@ -7,11 +7,12 @@ package org.mintframework.mvc.converter;
  * 
  * @param <T> Generic type of converted result.
  */
-public interface Converter<T> {
+public interface ParameterConverter<T> {
 
     /**
      * Convert a not-null String to specified object.
      */
     T convert(String s);
 
+    boolean canConvert(Class<?> clazz);
 }

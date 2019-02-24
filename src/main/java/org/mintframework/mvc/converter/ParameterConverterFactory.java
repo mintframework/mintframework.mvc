@@ -12,17 +12,18 @@ import java.util.logging.Logger;
  * @author Michael Liao (askxuefeng@gmail.com)
  * @author LW
  */
-public class ConverterFactory {
-	private Logger log = Logger.getLogger(ConverterFactory.class.getName());
+public class ParameterConverterFactory {
+	private Logger log = Logger.getLogger(ParameterConverterFactory.class.getName());
 
-	private Map<Class<?>, Converter<?>> map = new HashMap<Class<?>, Converter<?>>();
+	private static Map<Class<?>, ParameterConverter<?>> map = new HashMap<Class<?>, ParameterConverter<?>>();
+	private static ParameterConverter<?> defaultConverter = null;
 
-	public ConverterFactory() {
+	public ParameterConverterFactory() {
 		loadInternal();
 	}
 
-	void loadInternal() {
-		Converter<?> c = null;
+	private static void loadInternal() {
+		ParameterConverter<?> c = null;
 
 		c = new BooleanConverter();
 		map.put(boolean.class, c);
@@ -65,41 +66,59 @@ public class ConverterFactory {
 
 	public void loadExternalConverter(String typeClass, String converterClass) {
 		try {
-			loadExternalConverter(Class.forName(typeClass), (Converter<?>) Class.forName(converterClass).newInstance());
+			loadExternalConverter(Class.forName(typeClass), (ParameterConverter<?>) Class.forName(converterClass).newInstance());
 		} catch (Exception e) {
 			log.warning("Cannot load converter '" + converterClass + "' for type '" + typeClass + "'.");
 			e.printStackTrace();
 		}
 	}
 
-	public void loadExternalConverter(Class<?> clazz, Converter<?> converter) {
-		if (clazz == null)
-			throw new NullPointerException("Class is null.");
+	public void loadExternalConverter(Class<?> targetClazz, ParameterConverter<?> converter) {
+		if (targetClazz == null)
+			throw new NullPointerException("converter Class is null.");
 		if (converter == null)
 			throw new NullPointerException("Converter is null.");
-		if (map.containsKey(clazz)) {
+		if (map.containsKey(targetClazz)) {
 			log.warning("Cannot replace the exist converter for type '"
-					+ clazz.getName() + "'.");
+					+ targetClazz.getName() + "'.");
 			return;
 		}
-		map.put(clazz, converter);
+		map.put(targetClazz, converter);
 	}
 
 	public boolean canConvert(Class<?> clazz) {
-		return clazz.equals(String.class) || map.containsKey(clazz);
+		return clazz.equals(String.class) || map.containsKey(clazz) || (defaultConverter!=null && defaultConverter.canConvert(clazz));
 	}
 
 	public Object convert(Class<?> clazz, String s) {
 		if (clazz.equals(String.class)) {
 			return s;
 		}
-		Converter<?> c = map.get(clazz);
-		try{
-			return c.convert(s);
-		} catch (Exception e){
-			e.printStackTrace();
-			
-			return null;
+		ParameterConverter<?> c = map.get(clazz);
+		if(c != null) {
+			try{
+				return c.convert(s);
+			} catch (Exception e){
+				e.printStackTrace();
+				return null;
+			}
+		} else if(defaultConverter!=null){
+			try{
+				return defaultConverter.convert(s);
+			} catch (Exception e){
+				e.printStackTrace();
+				return null;
+			}
 		}
+		
+		return null;
+	}
+	
+	public void setDefaultConverter(ParameterConverter<?> converter) {
+		defaultConverter = converter;
+	}
+	
+	public ParameterConverter<?> getDefaultConverter() {
+		return defaultConverter;
 	}
 }

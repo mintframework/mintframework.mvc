@@ -5,10 +5,16 @@ package org.mintframework.mvc.converter;
  * 
  * @author Michael Liao (askxuefeng@gmail.com)
  */
-public class ByteConverter implements Converter<Byte> {
+public class ByteConverter implements ParameterConverter<Byte> {
 
     public Byte convert(String s) {
         return Byte.parseByte(s);
     }
+
+	@Override
+	public boolean canConvert(Class<?> clazz) {
+		// TODO Auto-generated method stub
+		return false;
+	}
 
 }

@@ -7,7 +7,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.mintframework.mvc.converter.ConverterFactory;
+import org.mintframework.mvc.converter.ParameterConverterFactory;
 import org.mintframework.mvc.util.GetArgumentName;
 
 /**
@@ -144,7 +144,7 @@ final class UrlMatcher {
 	private boolean checkIsActionMethod(Method method) {
 		/* check if the url argument type can be convert */
 		Class<?>[] argTypes = method.getParameterTypes();
-		ConverterFactory cvFact = new ConverterFactory();
+		ParameterConverterFactory cvFact = new ParameterConverterFactory();
 
 		Class<?> argType;
 		for (int argIndex : urlArgumentOrder) {

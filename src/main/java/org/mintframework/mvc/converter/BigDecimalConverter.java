@@ -7,7 +7,7 @@ import java.math.BigDecimal;
  * 
  * @author Michael Liao (askxuefeng@gmail.com)
  */
-public class BigDecimalConverter implements Converter<BigDecimal> {
+public class BigDecimalConverter implements ParameterConverter<BigDecimal> {
 
     public BigDecimal convert(String s) {
     	if("".equals(s.trim())){
@@ -15,5 +15,10 @@ public class BigDecimalConverter implements Converter<BigDecimal> {
     	}
         return new BigDecimal(s);
     }
+
+	@Override
+	public boolean canConvert(Class<?> clazz) {
+		return false;
+	}
 
 }

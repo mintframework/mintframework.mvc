@@ -5,7 +5,7 @@ package org.mintframework.mvc.converter;
  * 
  * @author Michael Liao (askxuefeng@gmail.com)
  */
-public class DoubleConverter implements Converter<Double> {
+public class DoubleConverter implements ParameterConverter<Double> {
 
     public Double convert(String s) {
     	if("".equals(s.trim())){
@@ -13,5 +13,11 @@ public class DoubleConverter implements Converter<Double> {
     	}
         return Double.parseDouble(s);
     }
+
+	@Override
+	public boolean canConvert(Class<?> clazz) {
+		// TODO Auto-generated method stub
+		return false;
+	}
 
 }

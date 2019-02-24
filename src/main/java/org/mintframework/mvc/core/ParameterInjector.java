@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.mintframework.mvc.converter.ConverterFactory;
+import org.mintframework.mvc.converter.ParameterConverterFactory;
 
 /**
  * 参数注射器，负责把前台参数注射入对应的对象内部
@@ -22,7 +22,7 @@ import org.mintframework.mvc.converter.ConverterFactory;
  *
  */
 class ParameterInjector {
-	private final static ConverterFactory converterFactory = new ConverterFactory();
+	private final static ParameterConverterFactory converterFactory = new ParameterConverterFactory();
 	
 	/**
 	 * parameter's index in action method's parameters.
@@ -147,7 +147,7 @@ class ParameterInjector {
 	 */
 	private void initSetters(){
 		if(needInject){
-			ConverterFactory converter = new ConverterFactory();
+			ParameterConverterFactory converter = new ParameterConverterFactory();
 			
 			try {
 				/*内省方式获取属性和setter*/

@@ -1,5 +1,7 @@
 package org.mintframework.mvc.core;
 
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletContext;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -50,9 +52,19 @@ public class BuildInArgumentInfo {
 	public final static int TYPE_COOKIE 	= 4;
 	
 	/**
-	 * Cookie 类型代号
+	 * RequestBody 
 	 */
 	public final static int TYPE_BODY 		= 5;
+	
+	/**
+	 * ServletConfig
+	 */
+	public final static int SERVLETCONFIG 		= 6;
+	
+	/**
+	 * ServletConfig
+	 */
+	public final static int SERVLETCONTEXT 		= 7;
 	
 	BuildInArgumentInfo(int argIndex, String argName, Class<?> argType){
 		this.argIndex 	= argIndex;
@@ -65,6 +77,10 @@ public class BuildInArgumentInfo {
 			typeCode = TYPE_RESPONSE;
 		} else if (argType.equals(HttpSession.class)) {
 			typeCode = TYPE_SESSION;
+		} else if (argType.equals(ServletConfig.class)) {
+			typeCode = SERVLETCONFIG;
+		} else if (argType.equals(ServletContext.class)) {
+			typeCode = SERVLETCONTEXT;
 		} else if (argType.equals(Cookie[].class)) {
 			typeCode = TYPE_COOKIES;
 		} else if (argType.equals(Cookie.class)){

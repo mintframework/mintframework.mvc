@@ -11,7 +11,11 @@ public class DoubleConverter implements ParameterConverter<Double> {
     	if("".equals(s.trim())){
     		return null;
     	}
-        return Double.parseDouble(s);
+        try {
+    		return Double.parseDouble(s);
+    	} catch(Exception e) {
+    		return null;
+    	}
     }
 
 	@Override

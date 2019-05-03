@@ -11,7 +11,11 @@ public class FloatConverter implements ParameterConverter<Float> {
     	if("".equals(s.trim())){
     		return null;
     	}
-        return Float.parseFloat(s);
+    	try {
+    		return Float.parseFloat(s);
+    	} catch(Exception e) {
+    		return null;
+    	}
     }
 
 	@Override

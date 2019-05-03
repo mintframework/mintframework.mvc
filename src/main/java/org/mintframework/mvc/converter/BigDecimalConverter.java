@@ -13,7 +13,11 @@ public class BigDecimalConverter implements ParameterConverter<BigDecimal> {
     	if("".equals(s.trim())){
     		return null;
     	}
-        return new BigDecimal(s);
+        try {
+    		return new BigDecimal(s);
+    	} catch(Exception e) {
+    		return null;
+    	}
     }
 
 	@Override

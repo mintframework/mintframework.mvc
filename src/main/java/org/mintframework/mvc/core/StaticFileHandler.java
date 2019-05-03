@@ -2,14 +2,15 @@ package org.mintframework.mvc.core;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.logging.Logger;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import java.util.logging.Logger;
 
 import org.mintframework.mvc.renderer.FileRenderer;
 import org.mintframework.util.PropertiesMap;
@@ -18,7 +19,6 @@ import org.mintframework.util.PropertiesMap;
  * 
  * Handle static file request.
  * 
- * @author Michael Liao (askxuefeng@gmail.com)
  * @author LiangWei(cnliangwei@foxmail.com)
  * @date 2015年3月13日 下午9:12:08 
  *
@@ -28,11 +28,10 @@ class StaticFileHandler {
 	private final String cacheControl;
 	private final Boolean lastModifiedCheck;
 	private final String CONTEXTPATH;
-	private String staticBase;
+	private final String sep = File.separator;
+	private Set<String> staticBases = new HashSet<>();
 	
 	private Logger log = Logger.getLogger(this.getClass().getName());
-
-	//private final String webRoot;
 
 	/**
 	 * @param config
@@ -42,36 +41,27 @@ class StaticFileHandler {
 		this.servletContext = config.getServletContext();
 		this.CONTEXTPATH = config.getServletContext().getContextPath();
 		
-		staticBase = pmap.get("mint.mvc.static-base");
+		String staticBaseStr = pmap.get("mint.mvc.staticBases");
 
 		/*
 		 * 自定义静态文件的存储路径
 		 */
-		String WEBROOT;
-		String sep = File.separator;
-		WEBROOT = (config.getServletContext().getRealPath("")).replace(sep, "/");
-		String WEBINFPATH = (WEBROOT+sep+"WEB-INF").replace(sep, "/");
-		
-		if(staticBase==null || "".equals(staticBase.trim()) || (staticBase.trim().toUpperCase()).startsWith(WEBINFPATH.toUpperCase())){
-			staticBase = WEBROOT;
-		} else if(staticBase.startsWith("webroot:/")){
-			staticBase = staticBase.replace("webroot:", WEBROOT);
-		} else if(staticBase.startsWith("webroot:")) {
-			staticBase = staticBase.replace("webroot:", WEBROOT+"/");
+		String WEBROOT = (config.getServletContext().getRealPath("")).replace(sep, "/");
+		if(staticBaseStr==null || staticBaseStr.isBlank()) {
+			staticBases.add(getStaticBase(null, WEBROOT));
+		} else {
+			for(String s: staticBaseStr.split(";")) {
+				staticBases.add(getStaticBase(s, WEBROOT));
+			}
 		}
-		staticBase = staticBase.replace(sep, "/");
 		
-		if(staticBase.endsWith("/")){
-			staticBase = staticBase.substring(0, staticBase.length()-1);
-		}
-
-		log.info("set static-base to : "+ staticBase);
+		log.info("set staticBase to : "+ staticBases);
 		
 		/*
 		 * 静态文件的缓存设置
 		 */
-		String 	cc = pmap.get("mint.mvc.static-file-cache-control"),
-				lmfc = pmap.get("mint.mvc.static-file-last-modified-check");
+		String 	cc = pmap.get("mint.mvc.staticFileCacheControl"),
+				lmfc = pmap.get("mint.mvc.mint.mvc.staticFileLastModifiedCheck");
 		
 		if(cc != null){
 			cacheControl = cc;
@@ -84,6 +74,30 @@ class StaticFileHandler {
 		} else {
 			lastModifiedCheck = true;
 		}
+	}
+	
+	private String getStaticBase(String staticBaseStr, String WEBROOT) {
+		/*
+		 * 自定义静态文件的存储路径
+		 */
+		String WEBINFPATH = (WEBROOT+sep+"WEB-INF").replace(sep, "/");
+		
+		if(staticBaseStr==null || "".equals(staticBaseStr.trim()) || (staticBaseStr.trim().toUpperCase()).startsWith(WEBINFPATH.toUpperCase())){
+			staticBaseStr = WEBROOT;
+		} else if(staticBaseStr.startsWith("webroot:/")){
+			staticBaseStr = staticBaseStr.replace("webroot:/", WEBROOT);
+		} else if(staticBaseStr.startsWith("webroot:")) {
+			staticBaseStr = staticBaseStr.replace("webroot:", WEBROOT);
+		}
+		staticBaseStr = staticBaseStr.replace(sep, "/");
+		
+		if(staticBaseStr.endsWith("/")){
+			staticBaseStr = staticBaseStr.substring(0, staticBaseStr.length()-1);
+		} else if(staticBaseStr.endsWith("//")) {
+			staticBaseStr = staticBaseStr.substring(0, staticBaseStr.length()-2);
+		}
+		
+		return staticBaseStr;
 	}
 
 	/**
@@ -102,31 +116,23 @@ class StaticFileHandler {
 			return;
 		}
 
-		int n = url.indexOf('?');
-		if (n!=(-1)){
-			url = url.substring(0, n);
+		for(String staticBase : staticBases) {
+			File f = new File(staticBase+url);
+			if(f.isFile()) {
+				FileRenderer fr = new FileRenderer(f);
+				fr.setCacheControl(cacheControl);
+				fr.setLastModifiedCheck(lastModifiedCheck);
+				fr.setConnection("keep-alive");
+				
+				try {
+					fr.render(servletContext, request, response);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				return;
+			}
 		}
 		
-		n = url.indexOf('#');
-		if (n!=(-1)){
-			url = url.substring(0, n);
-		}
-		
-		File f = new File(staticBase+url);
-		if (! f.isFile()) {
-			response.sendError(HttpServletResponse.SC_NOT_FOUND);
-			return;
-		}
-		
-		FileRenderer fr = new FileRenderer(f);
-		fr.setCacheControl(cacheControl);
-		fr.setLastModifiedCheck(lastModifiedCheck);
-		fr.setConnection("keep-alive");
-		
-		try {
-			fr.render(servletContext, request, response);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		response.sendError(HttpServletResponse.SC_NOT_FOUND);
 	}
 }

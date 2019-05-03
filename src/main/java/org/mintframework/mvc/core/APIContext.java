@@ -11,6 +11,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletContext;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -160,7 +162,9 @@ class APIContext {
 				|| clazz.equals(HttpSession.class) 
 				|| clazz.equals(HttpServletRequest.class) 
 				|| clazz.equals(HttpServletResponse.class)
-				|| clazz.equals(RequestBody.class)){
+				|| clazz.equals(RequestBody.class)
+				|| clazz.equals(ServletConfig.class)
+				|| clazz.equals(ServletContext.class)){
 				
 				if(builtInArguments == null) {
 					builtInArguments = new ArrayList<BuildInArgumentInfo>(); 

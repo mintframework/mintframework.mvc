@@ -116,6 +116,14 @@ public class FileRenderer extends Renderer {
 	}
 
 	/**
+	 * 
+	 * @param filePath
+	 */
+	public void setFile(String filePath) {
+		this.file = new File(filePath);
+	}
+	
+	/**
 	 * @return
 	 */
 	public String getCacheControl() {

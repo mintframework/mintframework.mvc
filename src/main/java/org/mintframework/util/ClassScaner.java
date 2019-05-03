@@ -102,7 +102,7 @@ public final class ClassScaner {
 	 * @param isRecursion
 	 * @return
 	 */
-	private Set<String> getClassNameFromJar(Enumeration<JarEntry> jarEntries, String packageName, boolean isRecursion){
+	public Set<String> getClassNameFromJar(Enumeration<JarEntry> jarEntries, String packageName, boolean isRecursion){
 		Set<String> classNames = new HashSet<String>();
 		
 		while (jarEntries.hasMoreElements()) {
@@ -134,7 +134,7 @@ public final class ClassScaner {
 	 * @param isRecursion 是否遍历子包
 	 * @return 类的完整名称
 	 */
-	private Set<String> getClassNameFromJars(URL[] urls, String packageName, boolean isRecursion) {
+	public Set<String> getClassNameFromJars(URL[] urls, String packageName, boolean isRecursion) {
 		Set<String> classNames = new HashSet<String>();
 		
 		for (int i = 0; i < urls.length; i++) {

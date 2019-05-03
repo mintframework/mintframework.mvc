@@ -11,8 +11,11 @@ public class LongConverter implements ParameterConverter<Long> {
     	if("".equals(s.trim())){
     		return null;
     	}
-    	
-        return Long.parseLong(s);
+    	try {
+    		return Long.parseLong(s);
+    	} catch(Exception e) {
+    		return null;
+    	}
     }
 
 	@Override

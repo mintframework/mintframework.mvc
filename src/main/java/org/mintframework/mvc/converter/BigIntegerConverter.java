@@ -13,7 +13,11 @@ public class BigIntegerConverter implements ParameterConverter<BigInteger> {
     	if("".equals(s.trim())){
     		return null;
     	}
-        return new BigInteger(s);
+    	try {
+    		return new BigInteger(s);
+    	} catch(Exception e) {
+    		return null;
+    	}
     }
 
 	@Override

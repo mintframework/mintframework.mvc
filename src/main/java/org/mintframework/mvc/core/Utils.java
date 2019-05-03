@@ -14,13 +14,11 @@ import org.mintframework.mvc.template.TemplateFactory;
  */
 class Utils {
 	TemplateFactory createTemplateFactory(String name) {
-		TemplateFactory tf = tryInitTemplateFactory(name);
-		if (tf == null)
-			tf = tryInitTemplateFactory(TemplateFactory.class.getPackage()
-					.getName()
-					+ "."
-					+ name
-					+ TemplateFactory.class.getSimpleName());
+		TemplateFactory tf = tryInitTemplateFactory(TemplateFactory.class.getPackage().getName()
+			+ "."
+			+ name
+			+ TemplateFactory.class.getSimpleName());
+		
 		if (tf == null) {
 			Logger.getLogger(Utils.class.getName()).warning(
 					"Cannot init template factory '" + name + "'.");
@@ -32,10 +30,11 @@ class Utils {
 
 	TemplateFactory tryInitTemplateFactory(String clazz) {
 		try {
-			Object obj = Class.forName(clazz).newInstance();
+			Object obj = Class.forName(clazz).getConstructor().newInstance();
 			if (obj instanceof TemplateFactory)
 				return (TemplateFactory) obj;
 		} catch (Exception e) {
+			e.printStackTrace();
 		}
 		return null;
 	}

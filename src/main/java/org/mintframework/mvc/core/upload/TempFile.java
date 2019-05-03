@@ -56,17 +56,17 @@ public class TempFile extends File{
 	}
 
 	/**
-	 * 将被文件复制到指定的目标位置
-	 * @param path 路径和文件名字符串
+	 * 将被文件复制到指定的目标位置， 如果父目录不存在，会自动创建
+	 * @param fullPath file full path
 	 * @throws IOException
 	 */
-	public void saveAs(String path) throws IOException{
+	public void saveAs(String fullPath) throws IOException{
 		FileChannel in = null;
 		FileChannel out = null;
 		FileInputStream fin = null;
 		FileOutputStream fout = null;
 		try {
-			File file = new File(path);
+			File file = new File(fullPath);
 			file.getParentFile().mkdirs();
 			fin = new FileInputStream(this);
 			fout = new FileOutputStream(file);

@@ -50,12 +50,12 @@ public class ServiceServlet extends HttpServlet {
 		
 		PropertiesMap pmap = PropertiesUtil.load("mintframework.properties", null, true);
 		
-		this.handleStatic = pmap.getBoolean("mint.mvc.handle-static");
+		this.handleStatic = pmap.getBoolean("mint.mvc.handleStatic");
 		if(this.handleStatic == null) {
 			this.handleStatic = false;
 		}
 		this.dispatcher.init(servletConfig.getServletContext(), pmap);
-		this.actionExecutor.init(servletConfig.getServletContext(), pmap);
+		this.actionExecutor.init(servletConfig, pmap);
 		
 		if(handleStatic){
 			this.staticFileHandler = new StaticFileHandler(servletConfig, pmap);

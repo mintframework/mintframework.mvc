@@ -12,7 +12,11 @@ public class IntegerConverter implements ParameterConverter<Integer> {
     		return null;
     	}
     	
-        return Integer.parseInt(s);
+    	try {
+    		return Integer.parseInt(s);
+    	} catch(Exception e) {
+    		return null;
+    	}
     }
 
 	@Override

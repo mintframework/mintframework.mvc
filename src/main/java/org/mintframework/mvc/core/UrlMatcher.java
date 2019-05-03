@@ -31,6 +31,7 @@ final class UrlMatcher {
 	final Pattern pattern;
 	final int[] urlArgumentOrder;
 	final String[] urlArgumentNames;
+	String holder = "。。！！！！······~~~~~~————￥￥￥。。‘’‘“”“、、、？？？";
 
 	/**
 	 * Build UrlMatcher by given url like "/blog/{name}/{id}".
@@ -122,14 +123,16 @@ final class UrlMatcher {
 
 			}
 			matcher.appendTail(sb);
-
+			String urlReg = sb.toString();
+			urlReg = urlReg.replace("/**", holder);
+			urlReg = urlReg.replace("/*", "(/[^/]*)");
+			urlReg = urlReg.replace(holder, "(/[^/]+)*");
+			
 			/* "/user/name" 和 "/user/name/" 都可以匹配 */
-			if(sb.toString().endsWith("/")) {
-				sb.setLength(sb.length()-1);
-				this.pattern = Pattern.compile(sb.toString() + "[/]?$");
-			} else {
-				this.pattern = Pattern.compile(sb.toString() + "[/]?$");
+			if(urlReg.endsWith("/")) {
+				urlReg = urlReg.substring(0, urlReg.length()-1);
 			}
+			this.pattern = Pattern.compile(urlReg + "[/]?$");
 		} else {
 			this.pattern = null;
 		}

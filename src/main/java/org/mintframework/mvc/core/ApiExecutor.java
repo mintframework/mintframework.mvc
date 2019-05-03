@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
@@ -42,6 +43,7 @@ import org.mintframework.util.PropertiesMap;
 class ApiExecutor {
 	private Logger log = Logger.getLogger(this.getClass().getName());
 	private ServletContext servletContext;
+	private ServletConfig servletConfig;
 	private ExceptionListener exceptionListener;
 
 	private ParameterConverterFactory converterFactory = new ParameterConverterFactory();
@@ -57,28 +59,32 @@ class ApiExecutor {
 	 * @param config
 	 * @throws ServletException
 	 */
-	void init(ServletContext servletContext, PropertiesMap config) throws ServletException {
+	void init(ServletConfig servletConfig, PropertiesMap config) throws ServletException {
 		log.info("Init Dispatcher...");
-		this.servletContext = servletContext;
-		uploadTemp = config.get("mint.mvc.upload-temp");
 		
+		this.servletConfig = servletConfig;
+		ServletContext servletContext = servletConfig.getServletContext();
+		this.servletContext = servletContext;
+		uploadTemp = config.get("mint.mvc.uploadTemp");
 		//设置默认的文件上传路径
 		if(uploadTemp!=null){
 			FileUploader.setTempFilePath(uploadTemp);
 		}
 		
-		trimString = Boolean.valueOf(config.get("mint.mvc.trim-string"));
+		trimString = Boolean.valueOf(config.get("mint.mvc.trimString"));
 
 		//异常监听器
-		String exHandler = config.get("mint.mvc.global-exception-handler");
+		String exHandler = config.get("mint.mvc.globalExceptionHandler");
 		if (exHandler != null && !exHandler.equals("")) {
 			try {
-				exceptionListener = (ExceptionListener) Class.forName(exHandler).newInstance();
-			} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+				exceptionListener = (ExceptionListener) Class.forName(exHandler).getDeclaredConstructor().newInstance();
+			} catch (Exception e) {
 				log.warning("can not init custom exceptionListener");
 				e.printStackTrace();
 			}
-		} else {
+		}
+		
+		if(exceptionListener == null) {
 			exceptionListener = new DefaultExceptionListener();
 		}
 
@@ -336,6 +342,18 @@ class ApiExecutor {
 					break;
 				}
 
+				case 6: {
+					arguments[info.argIndex] = servletConfig;
+
+					break;
+				}
+				
+				case 7: {
+					arguments[info.argIndex] = servletContext;
+					
+					break;
+				}
+				
 				default:
 					break;
 				}
@@ -347,79 +365,78 @@ class ApiExecutor {
 		Object arguInstance;
 		Map<String, ParameterInjector> injectors = actionConfig.injectorsMap;
 		ParameterInjector injector;
-		try {
-			for (String paramName : paramMap.keySet()) {
-				injector = injectors.get(paramName);
+		
+		for (String paramName : paramMap.keySet()) {
+			injector = injectors.get(paramName);
 
-				if (injector != null) {
-					if (injector.needInject) {
+			if (injector != null) {
+				if (injector.needInject) {
+					arguInstance = arguments[injector.argIndex];
+					if (arguInstance == null) {
+						/* instantiate a instance the first time you use */
+						try {
+							arguInstance = injector.argType.getDeclaredConstructor().newInstance();
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+						arguments[injector.argIndex] = arguInstance;
+					}
+					str = paramMap.get(paramName)[0];
+
+					if (trimString) {
+						str = str.trim();
+					}
+
+					injector.injectBean(arguInstance, str, paramName);
+				} else {
+					/*
+					 * 支持数组
+					 */
+					if (injector.isArray) {
+						String array[] = paramMap.get(paramName);
+						int len = array.length;
+						Class<?> t = injector.argType.getComponentType();
+						Object arr = Array.newInstance(t, len);
+						for (int i = 0; i < len; i++) {
+							str = array[i];
+
+							if (trimString) {
+								str = str.trim();
+							}
+
+							Array.set(arr, i, converterFactory.convert(t, str));
+						}
+
+						arguments[injector.argIndex] = arr;
+					} else if(injector.isEnum){
+						arguments[injector.argIndex] = initEnum(paramMap.get(paramName)[0], injector.enumOrdinals, injector.enumNames, injector.argType);
+					} else {
+						/* 简单类型直接转换 */
+						arguments[injector.argIndex] = converterFactory.convert(injector.argType, paramMap.get(paramName)[0]);
+					}
+				}
+			} else if (action.apiContext.hasMapParam) {
+				/*
+				 * 支持map参数
+				 */
+				Matcher matcher = mapKeyValuePattern.matcher(paramName);
+				if (matcher.matches()) {
+					injector = injectors.get(matcher.group(1));
+
+					if (injector != null) {
 						arguInstance = arguments[injector.argIndex];
 						if (arguInstance == null) {
-							/* instantiate a instance the first time you use */
-							arguInstance = injector.argType.newInstance();
+							/*
+							 * instantiate a instance the first time you use
+							 */
+							arguInstance = new HashMap<Object, Object>();
 							arguments[injector.argIndex] = arguInstance;
 						}
 						str = paramMap.get(paramName)[0];
-
-						if (trimString) {
-							str = str.trim();
-						}
-
-						injector.injectBean(arguInstance, str, paramName);
-					} else {
-						/*
-						 * 支持数组
-						 */
-						if (injector.isArray) {
-							String array[] = paramMap.get(paramName);
-							int len = array.length;
-							Class<?> t = injector.argType.getComponentType();
-							Object arr = Array.newInstance(t, len);
-							for (int i = 0; i < len; i++) {
-								str = array[i];
-
-								if (trimString) {
-									str = str.trim();
-								}
-
-								Array.set(arr, i, converterFactory.convert(t, str));
-							}
-
-							arguments[injector.argIndex] = arr;
-						} else if(injector.isEnum){
-							arguments[injector.argIndex] = initEnum(paramMap.get(paramName)[0], injector.enumOrdinals, injector.enumNames, injector.argType);
-						} else {
-							/* 简单类型直接转换 */
-							arguments[injector.argIndex] = converterFactory.convert(injector.argType, paramMap.get(paramName)[0]);
-						}
-					}
-				} else if (action.apiContext.hasMapParam) {
-					/*
-					 * 支持map参数
-					 */
-					Matcher matcher = mapKeyValuePattern.matcher(paramName);
-					if (matcher.matches()) {
-						injector = injectors.get(matcher.group(1));
-
-						if (injector != null) {
-							arguInstance = arguments[injector.argIndex];
-							if (arguInstance == null) {
-								/*
-								 * instantiate a instance the first time you use
-								 */
-								arguInstance = new HashMap<Object, Object>();
-								arguments[injector.argIndex] = arguInstance;
-							}
-							str = paramMap.get(paramName)[0];
-							injector.injectMap((Map<Object, Object>) arguInstance, matcher.group(2), str);
-						}
+						injector.injectMap((Map<Object, Object>) arguInstance, matcher.group(2), str);
 					}
 				}
 			}
-		} catch (InstantiationException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
 		}
 
 		/*

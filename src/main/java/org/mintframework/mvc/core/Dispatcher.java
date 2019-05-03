@@ -1,6 +1,7 @@
 package org.mintframework.mvc.core;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -31,6 +32,7 @@ class Dispatcher {
 	private Map<String, Map<UrlMatcher, APIContext>> urlMapMap = new HashMap<String, Map<UrlMatcher, APIContext>>();
 	private Map<String, UrlMatcher[]> matchersMap = new HashMap<String, UrlMatcher[]>();
 	private Boolean interceptStatic = false;
+	private ServletContext context = null;
 
 	/**
 	 * 拦截器
@@ -40,6 +42,8 @@ class Dispatcher {
 	
 	void init(ServletContext context, PropertiesMap config) throws ServletException {
 		log.info("Init Dispatcher...");
+		
+		this.context = context;
 		try {
 			initAll(config);
 		} catch (ServletException e) {
@@ -139,7 +143,7 @@ class Dispatcher {
 	}
 
 	/* 初始化action */
-	private void initComponents(PropertiesMap config) {
+	private void initComponents(PropertiesMap config) throws IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		interceptStatic = config.getBoolean("mint.mvc.intercept-static");
 
 		if(interceptStatic==null){
@@ -193,14 +197,14 @@ class Dispatcher {
 		servicesMap = componentScaner.getServiceObjects();
 		
 		//初始化组件报告器
-		String cr = config.get("mint.mvc.startup-listener");
+		String cr = config.get("mint.mvc.startupListener");
 		if(cr!=null && !"".equals(cr.trim())){
 			try {
 				Class<?> clazz = Class.forName(cr, false, this.getClass().getClassLoader());
 				
 				if(StartupListener.class.isAssignableFrom(clazz)){
-					StartupListener componentReportor = (StartupListener) clazz.newInstance();
-					componentReportor.report(ad.modules, componentScaner.getServiceConfigs(), componentScaner.getInterceptorConfig());
+					StartupListener componentReportor = (StartupListener) clazz.getDeclaredConstructor().newInstance();
+					componentReportor.report(this.context, ad.modules, componentScaner.getServiceConfigs(), componentScaner.getInterceptorConfig());
 				}
 				
 			} catch (ClassNotFoundException e) {

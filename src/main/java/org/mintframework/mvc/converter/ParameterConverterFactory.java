@@ -66,7 +66,7 @@ public class ParameterConverterFactory {
 
 	public void loadExternalConverter(String typeClass, String converterClass) {
 		try {
-			loadExternalConverter(Class.forName(typeClass), (ParameterConverter<?>) Class.forName(converterClass).newInstance());
+			loadExternalConverter(Class.forName(typeClass), (ParameterConverter<?>) Class.forName(converterClass).getDeclaredConstructor().newInstance());
 		} catch (Exception e) {
 			log.warning("Cannot load converter '" + converterClass + "' for type '" + typeClass + "'.");
 			e.printStackTrace();

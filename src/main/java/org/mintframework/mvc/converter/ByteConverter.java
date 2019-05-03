@@ -8,7 +8,11 @@ package org.mintframework.mvc.converter;
 public class ByteConverter implements ParameterConverter<Byte> {
 
     public Byte convert(String s) {
-        return Byte.parseByte(s);
+        try {
+    		return Byte.parseByte(s);
+    	} catch(Exception e) {
+    		return null;
+    	}
     }
 
 	@Override

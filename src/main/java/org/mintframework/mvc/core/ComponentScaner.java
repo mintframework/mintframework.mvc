@@ -36,7 +36,7 @@ class ComponentScaner {
 	ComponentScaner(PropertiesMap config){
 		ClassScaner sc = new ClassScaner(config.getClass().getClassLoader());
 		
-		String param = config.get("mint.mvc.component-packages");
+		String param = config.get("mint.mvc.componentPackages");
 
 		
 		if(param != null && !param.equals("")) {
@@ -96,11 +96,11 @@ class ComponentScaner {
 			Interceptor itcep = null;
 			for(Class<?> cls : interceptorClasses){
 				try {
-					itcep = (Interceptor) cls.newInstance();
+					itcep = (Interceptor) cls.getDeclaredConstructor().newInstance();
 					if(itcep.initMatcher()){
 						interceptors.add(itcep);
 					}
-				} catch (InstantiationException | IllegalAccessException e) {
+				} catch (Exception e) {
 					logger.warning("can't instantiates a interceptor->"+cls.getName());
 				}
 			}
@@ -125,11 +125,11 @@ class ComponentScaner {
 				
 				if(!"".equals(name)){
 					try {
-						sis = (Service) cls.newInstance();
+						sis = (Service) cls.getDeclaredConstructor().newInstance();
 						if(sis.initService()){
 							services.put(name, sis);
 						}
-					} catch (InstantiationException | IllegalAccessException e) {
+					} catch (Exception e) {
 						logger.warning("can't instantiates a service->"+cls.getName());
 					}
 				}
@@ -149,8 +149,8 @@ class ComponentScaner {
 			Set<Object> modules = new HashSet<Object>();
 			for(Class<?> cls : moduleClass){
 				try {
-					modules.add(cls.newInstance());
-				} catch (InstantiationException | IllegalAccessException e) {
+					modules.add(cls.getDeclaredConstructor().newInstance());
+				} catch (Exception e) {
 					logger.warning("can't instantiates a action->"+cls.getName());
 				}
 			}

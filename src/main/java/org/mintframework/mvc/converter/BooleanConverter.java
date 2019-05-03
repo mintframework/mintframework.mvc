@@ -8,7 +8,11 @@ package org.mintframework.mvc.converter;
 public class BooleanConverter implements ParameterConverter<Boolean> {
 
     public Boolean convert(String s) {
-        return Boolean.parseBoolean(s);
+    	try {
+    		return Boolean.parseBoolean(s);
+    	} catch(Exception e) {
+    		return null;
+    	}
     }
 
 	@Override

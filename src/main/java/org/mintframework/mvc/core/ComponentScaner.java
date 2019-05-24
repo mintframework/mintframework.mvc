@@ -38,24 +38,19 @@ class ComponentScaner {
 		
 		String param = config.get("mint.mvc.componentPackages");
 
-		
 		if(param != null && !param.equals("")) {
 			Set<String> componentNames = new HashSet<String>();
-			
 			for(String pkg : param.split(";")){
 				componentNames.addAll(sc.getClassnameFromPackage(pkg.trim(), true));
 			}
 
 			Class<?> clazz;
-			
 			interceptorClasses =  new HashSet<Class<Interceptor>>();
 			moduleClass = new HashSet<Class<?>>();
 			serviceClasses = new HashSet<Class<Service>>();
-			
 			for(String clsName : componentNames){
 				try {
 					clazz = Class.forName(clsName, false, this.getClass().getClassLoader()); //避免static语句执行所发生的错误
-					
 					if(clazz.getAnnotation(Module.class) != null){
 						//识别action
 						moduleClass.add(clazz);
@@ -104,7 +99,6 @@ class ComponentScaner {
 					logger.warning("can't instantiates a interceptor->"+cls.getName());
 				}
 			}
-			
 			return interceptors;
 		} else {
 			return null;

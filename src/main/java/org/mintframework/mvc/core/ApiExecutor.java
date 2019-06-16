@@ -8,8 +8,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URLDecoder;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -21,11 +23,10 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.mintframework.mvc.annotation.MultipartConfig;
 import org.mintframework.mvc.converter.ParameterConverterFactory;
+import org.mintframework.mvc.core.upload.DefaultMultipartParameter;
 import org.mintframework.mvc.core.upload.FileUploader;
-import org.mintframework.mvc.core.upload.MultipartHttpServletRequest;
-import org.mintframework.mvc.core.upload.MultipartParameter;
+import org.mintframework.mvc.core.upload.MintMultipartHttpServletRequest;
 import org.mintframework.mvc.renderer.ErrorRender;
 import org.mintframework.mvc.renderer.Renderer;
 import org.mintframework.mvc.renderer.TextRenderer;
@@ -131,45 +132,40 @@ class ApiExecutor {
 		}
 	}
 
-	void executeApi(HttpServletRequest request, HttpServletResponse response, Action action)
+	/**
+	 * 开始执行 api 方法
+	 * @param request
+	 * @param response
+	 * @param api
+	 * @throws ServletException
+	 * @throws IOException
+	 */
+	void executeApi(HttpServletRequest request, HttpServletResponse response, API api)
 			throws ServletException, IOException {
 		RequestContext.setActionContext(servletContext, request, response);
 
-		/* 处理上传请求 */
-		if (action.apiContext != null) {
+		// 处理上传请求
+		if (api.apiContext != null) {
 			String contentType = request.getContentType();
 			if (contentType != null && contentType.indexOf("multipart/form-data") >= 0) {
-				/* 避免“上传任意文件” */
-				if (action.apiContext.isMultipartAction) {
-					MultipartConfig multipartConfig = action.apiContext.multipartConfig;
-
-					if (multipartConfig.maxRequestSize() <= 0
-							|| (request.getContentLength() < multipartConfig.maxRequestSize())) {
-						/* 正在上传文件 */
-						FileUploader.upload(multipartConfig.attributeName(), multipartConfig.limitSize(),
-								request);
-						// 上传的文件通过attribute带出来
-						if (request.getAttribute(multipartConfig.attributeName()) != null) {
-							String attributeName = multipartConfig.attributeName();
-							MultipartHttpServletRequest r = new MultipartHttpServletRequest(request,
-									(MultipartParameter[]) request.getAttribute(attributeName), attributeName);
-							request = r;
-						}
-					} else {
-						log.warning("request body is too large");
-					}
+				// 避免“上传任意文件”
+				if (api.apiContext.isMultipartApi) {
+					// 正在上传文件
+					DefaultMultipartParameter[] params = FileUploader.upload(api.apiContext.uploadConfigs, request);
+					MintMultipartHttpServletRequest multiR = new MintMultipartHttpServletRequest(request, params);
+					request = multiR;
 				}
 			}
 		}
 
 		/* apply interceptor chain */
 		InterceptorChainImpl interceptorChain = null;
-		if (action.interceptors != null) {
-			if (action.apiContext != null) {
-				interceptorChain = new InterceptorChainImpl(action.interceptors, action.apiContext.module,
-						action.apiContext.api);
+		if (api.interceptors != null) {
+			if (api.apiContext != null) {
+				interceptorChain = new InterceptorChainImpl(api.interceptors, api.apiContext.module,
+						api.apiContext.api);
 			} else {
-				interceptorChain = new InterceptorChainImpl(action.interceptors, null, null);
+				interceptorChain = new InterceptorChainImpl(api.interceptors, null, null);
 			}
 
 			try {
@@ -182,11 +178,11 @@ class ApiExecutor {
 
 		// apply service chain
 		ServiceChainImpl serviceChain = null;
-		if (action.services != null && (interceptorChain == null || interceptorChain.isPass())) {
-			if (action.apiContext != null) {
-				serviceChain = new ServiceChainImpl(action.services, action.apiContext.module, action.apiContext.api);
+		if (api.services != null && (interceptorChain == null || interceptorChain.isPass())) {
+			if (api.apiContext != null) {
+				serviceChain = new ServiceChainImpl(api.services, api.apiContext.module, api.apiContext.api);
 			} else {
-				serviceChain = new ServiceChainImpl(action.services, null, null);
+				serviceChain = new ServiceChainImpl(api.services, null, null);
 			}
 
 			try {
@@ -198,20 +194,20 @@ class ApiExecutor {
 		}
 
 		// 有效的请求
-		if ((interceptorChain == null || interceptorChain.isPass())
-				&& (serviceChain == null || serviceChain.isPass())) {
-			if (action.apiContext != null) {
-				/* 调用action方法方法的参数 */
-				Object[] arguments = initArguments(request, response, action);
+		if ((interceptorChain == null || interceptorChain.isPass()) && (serviceChain == null || serviceChain.isPass())) {
+			if (api.apiContext != null) {
+				// 调用action方法方法的参数
+				Object[] arguments = initArguments(request, response, api);
 
 				try {
 					// 调用action方法并处理action返回的结果
-					handleResult(request, response, executeApiMethod(action.apiContext, arguments), action.apiContext);
+					handleResult(request, response, executeApiMethod(api.apiContext, arguments), api.apiContext);
 				} catch (Exception e) {
 					RequestContext.removeActionContext();
 					handleException(request, response, e);
 				}
 			} else {
+				//TODO
 				response.sendError(HttpServletResponse.SC_NOT_FOUND);
 			}
 		}
@@ -243,43 +239,33 @@ class ApiExecutor {
 	/**
 	 * prepare arguments for action method by parameter in request.
 	 * 
-	 * @param req
-	 * @param action
+	 * @param request
+	 * @param api
 	 * @param matcher
 	 * @throws IOException 
 	 */
 	@SuppressWarnings("unchecked")
-	private Object[] initArguments(HttpServletRequest req, HttpServletResponse resp, Action action) throws IOException {
-		APIContext actionConfig = action.apiContext;
-
+	private Object[] initArguments(HttpServletRequest request, HttpServletResponse response, API api) throws IOException {
+		APIContext actionConfig = api.apiContext;
 		Object[] arguments = new Object[actionConfig.argumentClasses.length];
-
-		/* 从url获取参数（parameter）初始化API参数（argument） */
-		String[] urlArgs = action.urlParams;
-
+		// 从url获取参数（parameter）初始化API参数（argument）
+		String[] urlArgs = api.urlParams;
 		int argIndex;
 		int[] urlArgOrder = actionConfig.urlArgumentOrder; // 对应位置的参数接受从url中分离出来的参数
-
 		String str;
 		for (int i = 0; i < urlArgs.length; i++) {
 			argIndex = urlArgOrder[i];
-
 			str = urlArgs[i];
-
-			/*
-			 * 如果参数中有“%”，说明该参数被编码过，需要解码。目前只支持utf8编码的解码
-			 */
+			// 如果参数中有“%”，说明该参数被编码过，需要解码。目前只支持utf8编码的解码
 			if (str.contains("%")) {
 				try {
 					str = URLDecoder.decode(urlArgs[i], "utf8");
 				} catch (UnsupportedEncodingException e) {
 				}
 			}
-
 			if (trimString) {
 				str = str.trim();
 			}
-			
 			//枚举类型初始化
 			if(actionConfig.argumentClasses[argIndex].isEnum()){
 				ParameterInjector injector = actionConfig.injectorsMap.get(actionConfig.argumentNames.get(argIndex));
@@ -289,29 +275,29 @@ class ApiExecutor {
 			}
 		}
 		
-		/* 初始化内置参数（request, response, secction, cookies, RequestBody） */
+		//初始化内置参数（request, response, session, cookies, RequestBody, servletConfig, servletContext）
 		if (actionConfig.builtInArguments != null) {
 			String requestBody = null;
 			for (BuildInArgumentInfo info : actionConfig.builtInArguments) {
 				switch (info.typeCode) {
 				case 0: {
-					arguments[info.argIndex] = req;
+					arguments[info.argIndex] = request;
 					break;
 				}
 				case 1: {
-					arguments[info.argIndex] = resp;
+					arguments[info.argIndex] = response;
 					break;
 				}
 				case 2: {
-					arguments[info.argIndex] = req.getSession();
+					arguments[info.argIndex] = request.getSession();
 					break;
 				}
 				case 3: {
-					arguments[info.argIndex] = req.getCookies();
+					arguments[info.argIndex] = request.getCookies();
 					break;
 				}
 				case 4: {
-					Cookie[] cookies = req.getCookies();
+					Cookie[] cookies = request.getCookies();
 
 					if (cookies != null) {
 						for (Cookie cookie : cookies) {
@@ -323,37 +309,29 @@ class ApiExecutor {
 					}
 					break;
 				}
-
 				case 5: {
 					if (requestBody == null) {
 						StringBuffer jb = new StringBuffer();
 						String line = null;
-						BufferedReader reader = req.getReader();
-						
+						BufferedReader reader = request.getReader();
 						while ((line = reader.readLine()) != null) {
 							jb.append(line);
 						}
-						
 						requestBody = jb.toString();
 					}
-					
 					arguments[info.argIndex] = new RequestBody(requestBody);
-
 					break;
 				}
-
 				case 6: {
 					arguments[info.argIndex] = servletConfig;
 
 					break;
 				}
-				
 				case 7: {
 					arguments[info.argIndex] = servletContext;
 					
 					break;
 				}
-				
 				default:
 					break;
 				}
@@ -361,11 +339,10 @@ class ApiExecutor {
 		}
 
 		/* 从请求参数中初始化action方法参数(argument) */
-		Map<String, String[]> paramMap = req.getParameterMap();
+		Map<String, String[]> paramMap = request.getParameterMap();
 		Object arguInstance;
 		Map<String, ParameterInjector> injectors = actionConfig.injectorsMap;
 		ParameterInjector injector;
-		
 		for (String paramName : paramMap.keySet()) {
 			injector = injectors.get(paramName);
 
@@ -373,7 +350,7 @@ class ApiExecutor {
 				if (injector.needInject) {
 					arguInstance = arguments[injector.argIndex];
 					if (arguInstance == null) {
-						/* instantiate a instance the first time you use */
+						// instantiate a instance the first time you use
 						try {
 							arguInstance = injector.argType.getDeclaredConstructor().newInstance();
 						} catch (Exception e) {
@@ -389,9 +366,7 @@ class ApiExecutor {
 
 					injector.injectBean(arguInstance, str, paramName);
 				} else {
-					/*
-					 * 支持数组
-					 */
+					// 支持数组
 					if (injector.isArray) {
 						String array[] = paramMap.get(paramName);
 						int len = array.length;
@@ -411,14 +386,12 @@ class ApiExecutor {
 					} else if(injector.isEnum){
 						arguments[injector.argIndex] = initEnum(paramMap.get(paramName)[0], injector.enumOrdinals, injector.enumNames, injector.argType);
 					} else {
-						/* 简单类型直接转换 */
+						// 简单类型直接转换
 						arguments[injector.argIndex] = converterFactory.convert(injector.argType, paramMap.get(paramName)[0]);
 					}
 				}
-			} else if (action.apiContext.hasMapParam) {
-				/*
-				 * 支持map参数
-				 */
+			} else if (api.apiContext.hasMapParam) {
+				// 支持map参数
 				Matcher matcher = mapKeyValuePattern.matcher(paramName);
 				if (matcher.matches()) {
 					injector = injectors.get(matcher.group(1));
@@ -426,9 +399,7 @@ class ApiExecutor {
 					if (injector != null) {
 						arguInstance = arguments[injector.argIndex];
 						if (arguInstance == null) {
-							/*
-							 * instantiate a instance the first time you use
-							 */
+							// instantiate a instance the first time you use
 							arguInstance = new HashMap<Object, Object>();
 							arguments[injector.argIndex] = arguInstance;
 						}
@@ -438,22 +409,37 @@ class ApiExecutor {
 				}
 			}
 		}
+		
+		// 初始化文件参数
+		if(api.apiContext.isMultipartApi) {
+			MintMultipartHttpServletRequest r = (MintMultipartHttpServletRequest)request;
+			Iterator<?> itr = api.apiContext.uploadConfigs.entrySet().iterator();
+			Map.Entry<String, UploadParamInfo> entry = null;
+			UploadParamInfo tempInfo;
+			while (itr.hasNext()) {
+				entry = (Entry<String, UploadParamInfo>) itr.next();
+				tempInfo = entry.getValue();
+				if(tempInfo.paramType == 0) {
+					arguments[tempInfo.paramIndex] = r.getPartFile(entry.getKey());
+				} else {
+					arguments[tempInfo.paramIndex] = r.getPartFiles(entry.getKey());
+				}
+			}
+		}
 
-		/*
-		 * 从request.getAttributeNames()初始化参数
-		 */
-		Enumeration<String> attributes = req.getAttributeNames();
+		// 从request.getAttributeNames()初始化参数
+		Enumeration<String> attributes = request.getAttributeNames();
 		Object attribute;
 		String attributeName;
 		injector = null;
 		injectors = actionConfig.injectorsMap;
 		while (attributes.hasMoreElements()) {
 			attributeName = attributes.nextElement();
-			attribute = req.getAttribute(attributeName);
+			attribute = request.getAttribute(attributeName);
 
 			if (attribute != null) {
 				injector = injectors.get(attributeName);
-				/* attributeName and attributeType 匹配时，进行参数替换 */
+				// attributeName and attributeType 匹配时，进行参数替换
 				if (injector != null && injector.argType.isInstance(attribute)) {
 					arguments[injectors.get(attributeName).argIndex] = attribute;
 				}
@@ -465,6 +451,11 @@ class ApiExecutor {
 
 	/**
 	 * 处理action返回的结果。当方法出现异常时，处理异常
+	 * @param request
+	 * @param response
+	 * @param result
+	 * @param actionConfig
+	 * @throws Exception
 	 */
 	private void handleResult(HttpServletRequest request, HttpServletResponse response, Object result,
 			APIContext actionConfig) throws Exception {
@@ -472,7 +463,7 @@ class ApiExecutor {
 			return;
 		}
 
-		/* 处理模板结果 */
+		// 处理模板结果
 		if (result instanceof Renderer) {
 			((Renderer) result).render(servletContext, request, response);
 			return;

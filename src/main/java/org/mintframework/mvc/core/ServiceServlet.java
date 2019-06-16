@@ -73,7 +73,7 @@ public class ServiceServlet extends HttpServlet {
 		String						method		= httpReq.getMethod().toLowerCase();
 		
 		/*进入处理请求*/
-		final Action action = dispatcher.dispatch(httpReq, method);
+		final API action = dispatcher.dispatch(httpReq, method);
 		if (action != null) {
 			final AsyncContext asyncContext = httpReq.startAsync();
 			
@@ -87,30 +87,6 @@ public class ServiceServlet extends HttpServlet {
 			}
 			
 			httpReq.setAttribute("baseUrl", baseUrl);
-			
-			/*// 添加监听器监听异步的执行结果
-			asyncContext.addListener(new AsyncListener() {
-				@Override
-				public void onComplete(AsyncEvent event) throws IOException {
-					//在这里处理正常结束的逻辑
-				}
-
-				@Override
-				public void onTimeout(AsyncEvent event) throws IOException {
-					//在这里处理超时的逻辑
-				}
-
-				@Override
-				public void onError(AsyncEvent event) throws IOException {
-					// 在这里处理出错的逻辑
-				}
-
-				@Override
-				public void onStartAsync(AsyncEvent event) throws IOException {
-					//开始异步线程执行动态请求
-				}
-			});*/
-			
 			//设置超时的时间，到了时间以后，会回调onTimeout的方法
 			asyncContext.setTimeout(0);
 			

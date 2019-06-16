@@ -1,7 +1,9 @@
 package org.mintframework.mvc.core;
 
+import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -18,9 +20,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.mintframework.mvc.annotation.MultipartConfig;
+import org.mintframework.mvc.annotation.UploadConfig;
 import org.mintframework.mvc.annotation.Required;
 import org.mintframework.mvc.converter.ParameterConverterFactory;
+import org.mintframework.mvc.core.upload.TempFile;
 
 /**
  * Internal class which holds object instance, method and arguments' types.
@@ -46,9 +49,9 @@ class APIContext {
 	 */
 	final Method apiMethod;
 	
-	final boolean isMultipartAction;
+	final boolean isMultipartApi;
 	
-	final MultipartConfig multipartConfig;
+	final Map<String, UploadParamInfo> uploadConfigs = new HashMap<>();
 	
 	/**
 	 * Method's arguments' types.
@@ -86,22 +89,23 @@ class APIContext {
 	List<BuildInArgumentInfo> builtInArguments = null;
 
 	APIContext(
-			Object instance,
-			Method apiMethod,
-			List<String> argumentNames,
-			int[] urlArgumentOrder,
-			String[] serviceNames,
-			ModuleConfig module,
-			APIConfig api) {
+		Object instance,
+		Method apiMethod,
+		List<String> argumentNames,
+		int[] urlArgumentOrder,
+		String[] serviceNames,
+		ModuleConfig module,
+		APIConfig api
+	) {
 		
-		this.instance 		= instance;
-		this.apiMethod 	= apiMethod;
+		this.instance 			= instance;
+		this.apiMethod 			= apiMethod;
 		this.argumentClasses 	= apiMethod.getParameterTypes();
-		this.argumentNames	= argumentNames;
-		this.urlArgumentOrder = urlArgumentOrder;
-		this.serviceNames = serviceNames;
-		this.module = module;
-		this.api = api;
+		this.argumentNames		= argumentNames;
+		this.urlArgumentOrder 	= urlArgumentOrder;
+		this.serviceNames 		= serviceNames;
+		this.module 			= module;
+		this.api 				= api;
 		
 		Annotation[][] ans = apiMethod.getParameterAnnotations();
 		this.requires = new boolean[argumentClasses.length];
@@ -110,49 +114,28 @@ class APIContext {
 			for(Annotation a : ans[i]){
 				if(a instanceof Required){
 					requires[i] = true;
-					continue;
 				} else {
 					requires[i] = false;
 				}
 			}
 		}
-		
-		if(apiMethod.getAnnotation(MultipartConfig.class) != null){
-			multipartConfig = apiMethod.getAnnotation(MultipartConfig.class);
-			boolean is = true;
-			if("".equals(multipartConfig.attributeName())){
-			is = false;
-			logger.warning(apiMethod.getName() + ":多媒体请求没有配置 attributeName");
-		}
-		
-		if(multipartConfig.limitSize() <= 0){
-			is = false;
-				logger.warning(apiMethod.getName() + ":多媒体请求没有配置 正确的limitSize");
-			}
-			
-			this.isMultipartAction = is;
-		} else {
-			this.isMultipartAction = false;
-			multipartConfig = null;
-		}
-		
 		/*取消虚拟机安全检查，大幅提高方法调用效率*/
 		this.apiMethod.setAccessible(true);
-		initInjector();
-	}
-
-	/**
-	 * 为action方法初始化参数注射器（请求参数->java Object）
-	 * 
-	 * TODO 如果一个方法已经被解析过，就不要在解析了，这种情况在一个方法配置多个url时发生
-	 */
-	private void initInjector(){
+		
+		/**
+		 * 为api方法初始化参数注射器（请求参数->java Object）
+		 * 
+		 * TODO 如果一个方法已经被解析过，就不要在解析了，这种情况在一个方法配置多个url时发生
+		 */
 		ParameterInjector injector = null;
 		Set<String>	keys;
 		Class<?> clazz;
-		
-		for(int i=0 ;i<argumentClasses.length ;i++){
-			clazz = argumentClasses[i];
+		Parameter param;
+		Parameter[] params = apiMethod.getParameters();
+		boolean isInitMulti = false;
+		for(int i=0 ;i<params.length ;i++){
+			param = params[i];
+			clazz = param.getType();
 			/*
 			 * 内置参数
 			 * 包括Cookie数组、HttpServletRequest、HttpServletResponse、Session
@@ -172,10 +155,9 @@ class APIContext {
 				builtInArguments.add(new BuildInArgumentInfo(i, argumentNames.get(i), clazz));
 				
 				continue;
-			} else if(clazz.equals(Map.class)){
+			} else if(clazz.equals(Map.class)) {
 				this.hasMapParam = true;
 				Type type = apiMethod.getGenericParameterTypes()[i];
-				
 				//获取Map中泛型的类型
 				if (type instanceof ParameterizedType) {
 					ParameterizedType paramType = (ParameterizedType) type;
@@ -192,18 +174,15 @@ class APIContext {
 								continue;
 							}
 						}
-						
 						if(mapKeyClass == null) {
 							mapKeyClass = String.class;
 						}
-						
 						//检测泛型是否可以转换
 						if(!(new ParameterConverterFactory()).canConvert(mapKeyClass)){
 							logger.warning(apiMethod.toGenericString() + " include unsupported Map parameterizedType "
 								+ mapKeyClass.getName() + ", support only  primitive type or String");
 							continue;
 						}
-						
 						//是否有第二个泛型
 						if(argTypes.length==2){
 							try {
@@ -213,11 +192,9 @@ class APIContext {
 								continue;
 							}
 						}
-						
 						if(mapValueClass == null) {
 							mapValueClass = String.class;
 						}
-						
 						//检测泛型是否可以转换
 						if(!(new ParameterConverterFactory()).canConvert(mapValueClass)){
 							logger.warning(apiMethod.toGenericString() + " include unsupported Map parameterizedType "
@@ -225,15 +202,23 @@ class APIContext {
 							continue;
 						}
 					}
-					
 					injector = new ParameterInjector(i, clazz, argumentNames.get(i), true, mapKeyClass, mapValueClass);
 				} else {
 					injector = new ParameterInjector(i, clazz, argumentNames.get(i), true, String.class, String.class);
 				}
+			} else if(clazz.equals(TempFile.class) || clazz.equals(TempFile[].class) || clazz.equals(File.class) || clazz.equals(File[].class)) { //获取文件上传配置
+				isInitMulti = true;
+				UploadConfig uinfo = param.getAnnotation(UploadConfig.class);
+				UploadParamInfo upinfo = null;
+				if(clazz.equals(TempFile.class) || clazz.equals(File.class)) {
+					upinfo = new UploadParamInfo(uinfo.limitSize(), i, 0);
+				} else if(clazz.equals(TempFile[].class) || clazz.equals(File[].class)) {
+					upinfo = new UploadParamInfo(uinfo.limitSize(), i, 1);
+				}
+				uploadConfigs.put(argumentNames.get(i), upinfo);
 			} else {
 				injector = new ParameterInjector(i, clazz, argumentNames.get(i), false, null, null);
 			}
-			
 			if(injector!=null){
 				keys = injector.getKeys();
 				for(String key : keys){
@@ -241,5 +226,7 @@ class APIContext {
 				}
 			}
 		}
+		
+		this.isMultipartApi = isInitMulti;
 	}
 }

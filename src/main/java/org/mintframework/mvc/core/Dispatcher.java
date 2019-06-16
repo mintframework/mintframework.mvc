@@ -69,7 +69,7 @@ class Dispatcher {
 	 * @throws ServletException
 	 * @throws IOException
 	 */
-	Action dispatch(HttpServletRequest request, String method) throws ServletException, IOException {
+	API dispatch(HttpServletRequest request, String method) throws ServletException, IOException {
 		String path = request.getRequestURI();
 		String ctxP = request.getContextPath();
 		
@@ -129,7 +129,7 @@ class Dispatcher {
 		if(interceptors.size()==0 && actionConfig==null){
 			return null;
 		} else {
-			return new Action(actionConfig, urlArgs, path, interceptors, services);
+			return new API(actionConfig, urlArgs, path, interceptors, services);
 		}
 	}
 
@@ -144,7 +144,7 @@ class Dispatcher {
 
 	/* 初始化action */
 	private void initComponents(PropertiesMap config) throws IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
-		interceptStatic = config.getBoolean("mint.mvc.intercept-static");
+		interceptStatic = config.getBoolean("mint.mvc.interceptStatic");
 
 		if(interceptStatic==null){
 			interceptStatic = false;

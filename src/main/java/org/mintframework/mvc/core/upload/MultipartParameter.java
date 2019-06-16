@@ -8,7 +8,7 @@ import javax.servlet.http.Part;
  * @date 2015年3月13日 下午9:31:59 
  *  
  */
-public interface  MultipartParameter extends Part{
+public interface  MultipartParameter extends Part {
 	/**
 	 * 是否文件
 	 * @return

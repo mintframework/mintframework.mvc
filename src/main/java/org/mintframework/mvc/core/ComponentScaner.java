@@ -115,8 +115,8 @@ class ComponentScaner {
 			Service sis = null;
 			String name;
 			for(Class<?> cls : serviceClasses){
-				name = cls.getAnnotation(ApiService.class).name().trim();
-				
+				name = cls.getAnnotation(ApiService.class).name();
+				name = name.trim();
 				if(!"".equals(name)){
 					try {
 						sis = (Service) cls.getDeclaredConstructor().newInstance();

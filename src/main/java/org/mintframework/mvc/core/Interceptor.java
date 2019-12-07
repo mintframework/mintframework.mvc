@@ -70,7 +70,14 @@ public abstract class Interceptor {
 	 * @return
 	 */
 	boolean matchers(String url){
-		return matcher.reset(url).matches();
+		try {
+			return matcher.reset(url).matches();
+		} catch(Exception e) {
+			e.addSuppressed(new Exception(url+"|"+matcher.toString()));
+			e.printStackTrace();
+		}
+		
+		return false;
 	}
 	
 	/**

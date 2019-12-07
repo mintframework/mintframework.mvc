@@ -100,7 +100,7 @@ public class FileUploader {
 			String line = null, partInfo, mimeType = null;
 			StringBuffer paramValue = new StringBuffer(512);
 			
-			byte[] readBuf = new byte[1024*4];
+			byte[] readBuf = new byte[1024*10];
 			int readLen = inputStream.readLine(readBuf, 0, readBuf.length);
 			line = new String(readBuf, 0, readLen);
 			
@@ -213,7 +213,7 @@ public class FileUploader {
 								fileOut.write(readBuf, 0, readLen);
 								fileOut.flush();
 							} else {
-								logger.warning("files too large");
+								logger.warning("files too large. filesize="+partSize+", maxsize="+currentUploadConfig.limitSize);
 								finish = true;
 								break;
 							}

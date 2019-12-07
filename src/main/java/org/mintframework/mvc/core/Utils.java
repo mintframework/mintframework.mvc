@@ -22,8 +22,6 @@ class Utils {
 		if (tf == null) {
 			Logger.getLogger(Utils.class.getName()).warning(
 					"Cannot init template factory '" + name + "'.");
-			throw new ConfigException("Cannot init template factory '" + name
-					+ "'.");
 		}
 		return tf;
 	}

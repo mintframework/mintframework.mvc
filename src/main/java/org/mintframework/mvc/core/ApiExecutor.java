@@ -30,7 +30,6 @@ import org.mintframework.mvc.core.upload.MintMultipartHttpServletRequest;
 import org.mintframework.mvc.renderer.ErrorRender;
 import org.mintframework.mvc.renderer.Renderer;
 import org.mintframework.mvc.renderer.TextRenderer;
-import org.mintframework.mvc.template.JspTemplateFactory;
 import org.mintframework.mvc.template.TemplateFactory;
 import org.mintframework.util.PropertiesMap;
 
@@ -226,14 +225,15 @@ class ApiExecutor {
 	private void initTemplateFactory(PropertiesMap config) {
 		String name = config.get("mint.mvc.template");
 		if (name == null) {
-			name = JspTemplateFactory.class.getName();
-			log.info("No template factory specified. Default to '" + name + "'.");
+			return;
 		}
 		Utils util = new Utils();
 		TemplateFactory tf = util.createTemplateFactory(name);
-		tf.init(config);
-		log.info("Template factory '" + tf.getClass().getName() + "' init ok.");
-		TemplateFactory.setTemplateFactory(tf);
+		if(tf != null) {
+			tf.init(config);
+			log.info("Template factory '" + tf.getClass().getName() + "' init ok.");
+			TemplateFactory.setTemplateFactory(tf);
+		}
 	}
 
 	/**

@@ -23,8 +23,9 @@ public class FileRenderer extends Renderer {
 
 	private File file;
 	private String cacheControl = null;
-	private String connection = null;
 	private boolean lastModifiedCheck = true;
+	private Float expires = 1f;
+	
 
 	public FileRenderer() {
 
@@ -58,11 +59,10 @@ public class FileRenderer extends Renderer {
 		/* 静态文件缓存 */
 		if (cacheControl != null) {
 			response.setHeader("Cache-Control", cacheControl);
+			response.setDateHeader("expires", (long) (System.currentTimeMillis()+this.expires*86400000));
 		}
-
-		if (connection != null) {
-			response.setHeader("Connection", connection);
-		}
+		
+		response.setHeader("Connection", "keep-alive");
 
 		if (lastModifiedCheck) {
 			long ifModifiedSince = request.getDateHeader("If-Modified-Since");
@@ -140,14 +140,6 @@ public class FileRenderer extends Renderer {
 		this.cacheControl = cacheControl;
 	}
 
-	public String getConnection() {
-		return connection;
-	}
-
-	public void setConnection(String connection) {
-		this.connection = connection;
-	}
-
 	/**
 	 * request server judge whether the document is modified default to true
 	 * 
@@ -164,5 +156,13 @@ public class FileRenderer extends Renderer {
 	 */
 	public void setLastModifiedCheck(boolean lastModifiedCheck) {
 		this.lastModifiedCheck = lastModifiedCheck;
+	}
+
+	public Float getExpires() {
+		return expires;
+	}
+
+	public void setExpires(Float expires) {
+		this.expires = expires;
 	}
 }

@@ -27,6 +27,7 @@ class StaticFileHandler {
 	private final ServletContext servletContext;
 	private final String cacheControl;
 	private final Boolean lastModifiedCheck;
+	private Float expiresDays;
 	private final String CONTEXTPATH;
 	private final String sep = File.separator;
 	private Set<String> staticBases = new HashSet<>();
@@ -61,7 +62,8 @@ class StaticFileHandler {
 		 * 静态文件的缓存设置
 		 */
 		String 	cc = pmap.get("mint.mvc.staticFileCacheControl"),
-				lmfc = pmap.get("mint.mvc.mint.mvc.staticFileLastModifiedCheck");
+				lmfc = pmap.get("mint.mvc.staticFileLastModifiedCheck"),
+				expires = pmap.get("mint.mvc.staticFileExpires");
 		
 		if(cc != null){
 			cacheControl = cc;
@@ -73,6 +75,12 @@ class StaticFileHandler {
 			lastModifiedCheck = Boolean.parseBoolean(lmfc);
 		} else {
 			lastModifiedCheck = true;
+		}
+		
+		try {
+			expiresDays = Float.valueOf(expires);
+		} catch(Exception e) {
+			expiresDays = 1f;
 		}
 	}
 	
@@ -122,7 +130,7 @@ class StaticFileHandler {
 				FileRenderer fr = new FileRenderer(f);
 				fr.setCacheControl(cacheControl);
 				fr.setLastModifiedCheck(lastModifiedCheck);
-				fr.setConnection("keep-alive");
+				fr.setExpires(expiresDays);
 				
 				try {
 					fr.render(servletContext, request, response);

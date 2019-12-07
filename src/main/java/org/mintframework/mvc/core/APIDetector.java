@@ -36,8 +36,10 @@ class APIDetector {
 	 * @return
 	 */
 	void awareActionMethodFromBeans(Set<Object> beans) {
-		for(Object bean : beans){
-			awareAPIFromBean(bean);
+		if(beans != null) {
+			for(Object bean : beans){
+				awareAPIFromBean(bean);
+			}
 		}
 	}
 

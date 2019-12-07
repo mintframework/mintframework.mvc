@@ -8,6 +8,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -33,6 +34,7 @@ class Dispatcher {
 	private Map<String, UrlMatcher[]> matchersMap = new HashMap<String, UrlMatcher[]>();
 	private Boolean interceptStatic = false;
 	private ServletContext context = null;
+	private Boolean hasNoApi = true;
 
 	/**
 	 * 拦截器
@@ -70,6 +72,11 @@ class Dispatcher {
 	 * @throws IOException
 	 */
 	API dispatch(HttpServletRequest request, String method) throws ServletException, IOException {
+		
+		if(this.hasNoApi) {
+			return null;
+		}
+		
 		String path = request.getRequestURI();
 		String ctxP = request.getContextPath();
 		
@@ -171,6 +178,13 @@ class Dispatcher {
 		this.matchersMap.put("delete", ad.deleteUrlMap.keySet().toArray(new UrlMatcher[ad.deleteUrlMap.size()]));
 		this.matchersMap.put("options", ad.optionsUrlMap.keySet().toArray(new UrlMatcher[ad.optionsUrlMap.size()]));
 		log.info("end matching url ");
+		
+		for(Entry<String, UrlMatcher[]> m : this.matchersMap.entrySet()) {
+			if(m.getValue().length > 0) {
+				this.hasNoApi = false;
+				break;
+			}
+		}
 		
 		//初始化url拦截器
 		Set<Interceptor> itset = componentScaner.getInteceptorObjects();

@@ -23,8 +23,15 @@ public class TextRenderer extends Renderer {
         this.text = text;
     }
 
-    public TextRenderer(String text, String characterEncoding) {
+    /**
+     * 
+     * @param text
+     * @param contentType 默认为"text/html"
+     * @param characterEncoding 默认为"UTF-8"
+     */
+    public TextRenderer(String text, String contentType, String characterEncoding) {
         this.text = text;
+        this.contentType = contentType;
         this.characterEncoding = characterEncoding;
     }
 

@@ -8,7 +8,7 @@ import java.util.logging.Logger;
 
 import org.mintframework.mvc.annotation.ApiService;
 import org.mintframework.mvc.annotation.InterceptorConfig;
-import org.mintframework.mvc.annotation.Module;
+import org.mintframework.mvc.annotation.MintModule;
 import org.mintframework.util.ClassScaner;
 import org.mintframework.util.PropertiesMap;
 
@@ -51,7 +51,7 @@ class ComponentScaner {
 			for(String clsName : componentNames){
 				try {
 					clazz = Class.forName(clsName, false, this.getClass().getClassLoader()); //避免static语句执行所发生的错误
-					if(clazz.getAnnotation(Module.class) != null){
+					if(clazz.getAnnotation(MintModule.class) != null){
 						//识别action
 						moduleClass.add(clazz);
 						logger.info("discover a action->"+clsName);

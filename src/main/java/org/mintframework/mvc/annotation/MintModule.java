@@ -33,7 +33,7 @@ import java.lang.annotation.Target;
  */
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Module {
+public @interface MintModule {
 	String		url();
 	
 	String		desc()		default "";

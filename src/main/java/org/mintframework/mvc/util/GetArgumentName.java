@@ -32,12 +32,14 @@ public class GetArgumentName {
     public static List<String> getArgumentNames(Method method) {
         try {
             int size = method.getParameterTypes().length;
-            if (size == 0)
-                return new ArrayList<String>(0);
-            List<String> list = getParamNames(method.getDeclaringClass()).get(
-                    getKey(method));
-            if (list != null && list.size() != size)
-                return list.subList(0, size);
+            if (size == 0) {
+            	return new ArrayList<String>(0);
+            }
+            
+            List<String> list = getParamNames(method.getDeclaringClass()).get(getKey(method));
+            if (list != null && list.size() != size) {
+            	return list.subList(0, size);
+            }
             return list;
         } catch (Throwable e) {
             throw new RuntimeException(e);

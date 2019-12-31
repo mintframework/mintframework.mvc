@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import org.mintframework.mvc.annotation.API;
-import org.mintframework.mvc.annotation.Module;
+import org.mintframework.mvc.annotation.MintModule;
 import org.mintframework.mvc.annotation.ApiServices;
 import org.mintframework.mvc.util.GetArgumentName;
 
@@ -50,7 +50,7 @@ class APIDetector {
 	 */
 	private void awareAPIFromBean(Object moduleBean){
 		Class<?> clazz = moduleBean.getClass();
-		Module mconfig = clazz.getAnnotation(Module.class);
+		MintModule mconfig = clazz.getAnnotation(MintModule.class);
 		String 	baseUrl = mconfig.url();
 
 		/*一个url匹配器和一个action组成键值对*/

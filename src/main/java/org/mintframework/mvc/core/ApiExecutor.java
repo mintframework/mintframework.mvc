@@ -148,12 +148,10 @@ class ApiExecutor {
 			String contentType = request.getContentType();
 			if (contentType != null && contentType.indexOf("multipart/form-data") >= 0) {
 				// 避免“上传任意文件”
-				if (api.apiContext.isMultipartApi) {
-					// 正在上传文件
-					DefaultMultipartParameter[] params = FileUploader.upload(api.apiContext.uploadConfigs, request);
-					MintMultipartHttpServletRequest multiR = new MintMultipartHttpServletRequest(request, params);
-					request = multiR;
-				}
+				// 正在上传文件
+				DefaultMultipartParameter[] params = FileUploader.upload(api.apiContext.uploadConfigs, request, api.apiContext.isMultipartApi);
+				MintMultipartHttpServletRequest multiR = new MintMultipartHttpServletRequest(request, params);
+				request = multiR;
 			}
 		}
 

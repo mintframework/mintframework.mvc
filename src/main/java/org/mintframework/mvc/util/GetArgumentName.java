@@ -38,6 +38,11 @@ public class GetArgumentName {
             
             List<String> list = getParamNames(method.getDeclaringClass()).get(getKey(method));
             if (list != null && list.size() != size) {
+				/*
+				 * System.out.println(Arrays.asList(method.getParameterTypes()));
+				 * System.out.println(list);
+				 */
+            	//throw new Exception("获取方法参数错误："+method.getDeclaringClass().getName()+"  "+method.getName());
             	return list.subList(0, size);
             }
             return list;
@@ -79,10 +84,8 @@ public class GetArgumentName {
      * @throws IOException
      *             如果有任何IO异常,不应该有,如果是本地文�?�?00%遇到bug�?
      */
-    public static Map<String, List<String>> getParamNames(Class<?> klass)
-            throws IOException {
-        InputStream in = klass.getResourceAsStream("/"
-                + klass.getName().replace('.', '/') + ".class");
+    public static Map<String, List<String>> getParamNames(Class<?> klass) throws IOException {
+        InputStream in = klass.getResourceAsStream("/" + klass.getName().replace('.', '/') + ".class");
         return getParamNames(in);
     }
  

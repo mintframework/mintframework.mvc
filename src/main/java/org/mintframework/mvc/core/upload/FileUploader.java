@@ -49,14 +49,14 @@ public class FileUploader {
 	 * @param request
 	 * @return
 	 */
-	public static DefaultMultipartParameter[] upload(Map<String, UploadParamInfo> uploadConfigs, HttpServletRequest request){
+	public static DefaultMultipartParameter[] upload(Map<String, UploadParamInfo> uploadConfigs, HttpServletRequest request, Boolean acceptFile){
 		if(tempFilePath == null || "".equals(tempFilePath)) {
 			log.warning("has no mint.mvc.uploadTemp config item");
 			return null;
 		}
 		
 		try{
-			return parseRequestBody(request, tempFilePath, uploadConfigs);
+			return parseRequestBody(request, tempFilePath, uploadConfigs, acceptFile);
 		} catch(Exception e) {
 			e.printStackTrace();
 			return null;
@@ -69,7 +69,7 @@ public class FileUploader {
 	 * @param request
 	 * @return 
 	 */
-	static DefaultMultipartParameter[] parseRequestBody(HttpServletRequest request, String tempFilePath, Map<String, UploadParamInfo> uploadConfigs){
+	static DefaultMultipartParameter[] parseRequestBody(HttpServletRequest request, String tempFilePath, Map<String, UploadParamInfo> uploadConfigs, Boolean acceptFile){
 		ServletInputStream inputStream = null;
 		try {
 			inputStream = request.getInputStream();
@@ -170,7 +170,7 @@ public class FileUploader {
 							isFile = true;
 							
 							//是否有对应的参数接受该文件
-							if(uploadConfigs.containsKey(currentPart.name)) {
+							if(acceptFile && uploadConfigs.containsKey(currentPart.name)) {
 								tempFile = createTempFile(tempFilePath, info.get("filename"));
 								fileOut = new FileOutputStream(tempFile);
 								currentPart.tempFile = tempFile;

@@ -60,7 +60,7 @@ public class TempFile extends File{
 	 * @param fullPath file full path
 	 * @throws IOException
 	 */
-	public void saveAs(String fullPath) throws IOException{
+	public File saveAs(String fullPath) throws IOException{
 		FileChannel in = null;
 		FileChannel out = null;
 		FileInputStream fin = null;
@@ -74,6 +74,8 @@ public class TempFile extends File{
 			in = fin.getChannel();		//得到对应的文件通道
 			out = fout.getChannel();	//得到对应的文件通道
 			in.transferTo(0, in.size(), out);	//连接两个通道，并且从in通道读取，然后写入out通道
+			
+			return file;
 		} catch (IOException e) {
 			throw e;
 		} finally {

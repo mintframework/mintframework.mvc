@@ -9,7 +9,6 @@ import java.net.URLDecoder;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
@@ -53,7 +52,6 @@ class ApiExecutor {
 	private boolean trimString = false;
 
 	private final Pattern mapKeyValuePattern = Pattern.compile("^(\\w+).(\\w+)$");
-	private final Pattern enumValuePattern = Pattern.compile("^\\d+$");
 
 	/**
 	 * @param config
@@ -110,14 +108,13 @@ class ApiExecutor {
 			if (apiContext.requires[i] && arguments[i] == null) {
 				if(tipString == null){
 					tipString = "";
-				} else {
-					tipString += "argument [" + apiContext.argumentNames.get(i) + "] can not be null;";
 				}
+				tipString += "argument [" + apiContext.argumentNames.get(i) + "] is required, can not be null;";
 			}
 		}
 		
 		if(tipString != null){
-			return new ErrorRender(403, tipString);
+			return new ErrorRender(400, tipString);
 		}
 
 		try {
@@ -265,12 +262,7 @@ class ApiExecutor {
 				str = str.trim();
 			}
 			//枚举类型初始化
-			if(actionConfig.argumentClasses[argIndex].isEnum()){
-				ParameterInjector injector = actionConfig.injectorsMap.get(actionConfig.argumentNames.get(argIndex));
-				arguments[argIndex] = initEnum(str, injector.enumOrdinals, injector.enumNames, injector.argType);
-			} else {
-				arguments[argIndex] = converterFactory.convert(actionConfig.argumentClasses[argIndex], str);
-			}
+			arguments[argIndex] = converterFactory.convert(actionConfig.argumentClasses[argIndex], str);
 		}
 		
 		//初始化内置参数（request, response, session, cookies, RequestBody, servletConfig, servletContext）
@@ -336,7 +328,7 @@ class ApiExecutor {
 			}
 		}
 
-		/* 从请求参数中初始化action方法参数(argument) */
+		/* 从请求参数中初始化 api 方法参数(argument) */
 		Map<String, String[]> paramMap = request.getParameterMap();
 		Object arguInstance;
 		Map<String, ParameterInjector> injectors = actionConfig.injectorsMap;
@@ -381,8 +373,6 @@ class ApiExecutor {
 						}
 
 						arguments[injector.argIndex] = arr;
-					} else if(injector.isEnum){
-						arguments[injector.argIndex] = initEnum(paramMap.get(paramName)[0], injector.enumOrdinals, injector.enumNames, injector.argType);
 					} else {
 						// 简单类型直接转换
 						arguments[injector.argIndex] = converterFactory.convert(injector.argType, paramMap.get(paramName)[0]);
@@ -491,31 +481,5 @@ class ApiExecutor {
 		} catch (Exception e) {
 			throw new ServletException(e);
 		}
-	}
-	
-	/**
-	 * 初始化枚举参数
-	 * @param value
-	 * @param enumOrdinals
-	 * @param enumNames
-	 * @param argType
-	 * @return
-	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private Enum<?> initEnum(String value, List<Integer> enumOrdinals, List<String> enumNames, Class<?> argType){
-		//索引方式初始化枚举
-		if(enumValuePattern.matcher(value).matches()){
-			int val = Integer.valueOf(value);
-			
-			if(enumOrdinals.indexOf(val)>-1){
-				value = enumNames.get(val);
-				return Enum.valueOf((Class<? extends Enum>)argType, value);
-			}
-		} else if(enumNames.indexOf(value) > -1){ //字符串方式初始化枚举
-			return Enum.valueOf((Class<? extends Enum>)argType, value);
-			
-		}
-		
-		return null;
 	}
 }

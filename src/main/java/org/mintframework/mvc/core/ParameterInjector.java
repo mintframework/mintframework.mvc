@@ -7,9 +7,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -41,11 +39,6 @@ class ParameterInjector {
 	final Class<?> 					mapKeyClass;
 	final Class<?>					mapValueClass;
 	
-	boolean isEnum = false;
-	List<Integer> enumOrdinals;
-	List<String> enumNames;
-	
-	
 	/**
 	 * @param argIndex 参数的索引
 	 * @param argType 参数的类型
@@ -54,7 +47,6 @@ class ParameterInjector {
 	 * @param mapKeyClass 泛型第一个参数
 	 * @param mapValueClass 泛型第二个参数
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	ParameterInjector(int argIndex, Class<?> argType, String argName, boolean isMapType, Class<?> mapKeyClass, Class<?> mapValueClass){
 		this.argIndex = argIndex;
 		this.argType = argType;
@@ -65,23 +57,10 @@ class ParameterInjector {
 		
 		isArray = argType.isArray();
 		
-		if(argType.isPrimitive() || argType.equals(String.class) || isArray){
+		if(argType.isPrimitive() || argType.equals(String.class) || isArray || argType.isEnum()){
 			needInject = false;
 		} else if(isMapType){
 			needInject = false;
-		} else if(argType.isEnum()){
-			needInject = false;
-			enumOrdinals = new ArrayList<>();
-			enumNames = new ArrayList<>();
-			isEnum = true;
-			
-			Enum<?> es[] = ((Class<? extends Enum>)argType).getEnumConstants();
-			if(es!=null){
-				for(Enum<?> e : es){
-					enumOrdinals.add(e.ordinal());
-					enumNames.add(e.name());
-				}
-			}
 		} else {
 			boolean result;
 			try {
@@ -150,7 +129,7 @@ class ParameterInjector {
 			ParameterConverterFactory converter = new ParameterConverterFactory();
 			
 			try {
-				/*内省方式获取属性和setter*/
+				/*内省方式获取setter*/
 				PropertyDescriptor[] props = Introspector.getBeanInfo(argType, Object.class).getPropertyDescriptors();
 				Method setter;
 				Class<?> type;
@@ -158,7 +137,7 @@ class ParameterInjector {
 				for(PropertyDescriptor pd : props){
 					type = pd.getPropertyType();
 					
-					if(converter.canConvert(type)){
+					if(converter.canConvert(type) || type.isEnum()){
 						setter = pd.getWriteMethod();
 						/*取消虚拟机安全检查，提高方法调用效率*/
 						if(setter!=null){
@@ -176,13 +155,13 @@ class ParameterInjector {
 				e.printStackTrace();
 			}
 			
-			//反射获取属性，非final,static,private属性也可以注入
+			//反射获取属性，非final,static,private, Protected属性也可以注入
 			for(Field f : argType.getFields()){
-				if(Modifier.isFinal(f.getModifiers()) || Modifier.isStatic(f.getModifiers()) || Modifier.isPrivate(f.getModifiers())) continue;
+				if(Modifier.isFinal(f.getModifiers()) || Modifier.isStatic(f.getModifiers()) || Modifier.isPrivate(f.getModifiers()) || Modifier.isProtected(f.getModifiers())) continue;
 				
 				if(settersMap.get(argName+"."+f.getName())!=null) continue;
 				
-				if(converter.canConvert(f.getType())){
+				if(converter.canConvert(f.getType()) || f.getType().isEnum()){
 					f.setAccessible(true);
 					settersMap.put(argName+"."+f.getName(),  new SetterInfo(null, f.getType(), f, false));
 				}

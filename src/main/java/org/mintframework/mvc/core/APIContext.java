@@ -125,7 +125,7 @@ class APIContext {
 		/**
 		 * 为api方法初始化参数注射器（请求参数->java Object）
 		 * 
-		 * TODO 如果一个方法已经被解析过，就不要在解析了，这种情况在一个方法配置多个url时发生
+		 * TODO 如果一个方法已经被解析过，就不要再解析了，这种情况在一个方法配置多个url时发生
 		 */
 		ParameterInjector injector = null;
 		Set<String>	keys;

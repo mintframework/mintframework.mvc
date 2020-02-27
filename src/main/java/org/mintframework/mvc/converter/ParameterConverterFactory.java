@@ -2,9 +2,12 @@ package org.mintframework.mvc.converter;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 /**
  * Factory for all converters(add string support).
@@ -87,28 +90,83 @@ public class ParameterConverterFactory {
 	}
 
 	public boolean canConvert(Class<?> clazz) {
-		return clazz.equals(String.class) || map.containsKey(clazz) || (defaultConverter!=null && defaultConverter.canConvert(clazz));
+		return clazz.equals(String.class) || clazz.isEnum() || map.containsKey(clazz) || (defaultConverter!=null && defaultConverter.canConvert(clazz));
 	}
 
 	public Object convert(Class<?> clazz, String s) {
+		//字符串直接返回
 		if (clazz.equals(String.class)) {
 			return s;
 		}
-		ParameterConverter<?> c = map.get(clazz);
-		if(c != null) {
-			try{
-				return c.convert(s);
-			} catch (Exception e){
-				e.printStackTrace();
-				return null;
+		
+		//枚举类型
+		if(clazz.isEnum()) {
+			return initEnum(clazz, s);
+		} else { //其他类型
+			ParameterConverter<?> c = map.get(clazz);
+			if(c != null) {
+				try{
+					return c.convert(s);
+				} catch (Exception e){
+					e.printStackTrace();
+					return null;
+				}
+			} else if(defaultConverter!=null){
+				try{
+					return defaultConverter.convert(s);
+				} catch (Exception e){
+					e.printStackTrace();
+					return null;
+				}
 			}
-		} else if(defaultConverter!=null){
-			try{
-				return defaultConverter.convert(s);
-			} catch (Exception e){
-				e.printStackTrace();
-				return null;
+		}
+		
+		
+		return null;
+	}
+	
+	private static Map<Class<?>, List<Integer>> enumOrdinalsMap = new HashMap<Class<?>, List<Integer>>();
+	private static Map<Class<?>, List<String>> enumNamesMap = new HashMap<Class<?>, List<String>>();
+	private final Pattern enumValuePattern = Pattern.compile("^\\d+$");
+	/**
+	 * 转换枚举参数
+	 * @param argType
+	 * @param value
+	 * @param enumNames
+	 * @return
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private Enum<?> initEnum(Class<?> argType, String value){
+		List<Integer> enumOrdinals = enumOrdinalsMap.get(argType);
+		List<String> enumNames = null;
+		
+		if(enumOrdinals == null) {
+			enumOrdinals = new ArrayList<>();
+			enumNames = new ArrayList<>();
+			Enum<?> es[] = ((Class<? extends Enum>)argType).getEnumConstants();
+			if(es!=null){
+				for(Enum<?> e : es){
+					enumOrdinals.add(e.ordinal());
+					enumNames.add(e.name());
+				}
 			}
+			enumOrdinalsMap.put(argType, enumOrdinals);
+			enumNamesMap.put(argType, enumNames);
+		} else {
+			enumNames = enumNamesMap.get(argType);
+		}
+		
+		//索引方式初始化枚举
+		if(enumValuePattern.matcher(value).matches()){
+			int val = Integer.valueOf(value);
+			if(enumOrdinals.indexOf(val)>-1){
+				value = enumNames.get(val);
+				return Enum.valueOf((Class<? extends Enum>)argType, value);
+			} else if(enumNames.indexOf(value) > -1) {
+				return Enum.valueOf((Class<? extends Enum>)argType, value);
+			}
+		} else if(enumNames.indexOf(value) > -1){ //字符串方式初始化枚举
+			return Enum.valueOf((Class<? extends Enum>)argType, value);
 		}
 		
 		return null;

@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URLEncoder;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -25,12 +26,22 @@ public class FileRenderer extends Renderer {
 	private String cacheControl = null;
 	private boolean lastModifiedCheck = true;
 	private Float expires = 1f;
+	private String fileName = null;
 	
 
 	public FileRenderer() {
 
 	}
 
+	/**
+	 * 
+	 * @param file
+	 */
+	public FileRenderer(File file, String fileName) {
+		this.file = file;
+		this.fileName = fileName;
+	}
+	
 	/**
 	 * 
 	 * @param file
@@ -63,6 +74,9 @@ public class FileRenderer extends Renderer {
 		}
 		
 		response.setHeader("Connection", "keep-alive");
+		if(fileName != null) {
+			response.setHeader("Content-Disposition", "attachment; filename=" + URLEncoder.encode(fileName, "UTF-8"));
+		}
 
 		if (lastModifiedCheck) {
 			long ifModifiedSince = request.getDateHeader("If-Modified-Since");

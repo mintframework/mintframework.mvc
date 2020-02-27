@@ -49,7 +49,7 @@ public class TempFile extends File{
 		String suffix = "",
 			filename = this.getName();
 		if(filename.indexOf(".")>-1){
-			suffix = filename.substring(filename.indexOf("."));
+			suffix = filename.substring(filename.lastIndexOf("."));
 		}
 		
 		return suffix;

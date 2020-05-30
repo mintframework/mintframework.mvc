@@ -12,22 +12,22 @@ import java.nio.channels.FileChannel;
  * @author LiangWei(cnliangwei@foxmail.com)
  * @date 2015年8月9日 下午15:30:43 
  */
-public class TempFile extends File{
+public class MintTempFile extends File{
 	private static final long serialVersionUID = 1L;
 
-	public TempFile(URI uri) {
+	public MintTempFile(URI uri) {
 		super(uri);
 	}
 
-	public TempFile(String parent, String child) {
+	public MintTempFile(String parent, String child) {
 		super(parent, child);
 	}
 
-	public TempFile(String pathname) {
+	public MintTempFile(String pathname) {
 		super(pathname);
 	}
 
-	public TempFile(File parent, String child) {
+	public MintTempFile(File parent, String child) {
 		super(parent, child);
 	}
 	
@@ -54,13 +54,13 @@ public class TempFile extends File{
 		
 		return suffix;
 	}
-
+	
 	/**
 	 * 将被文件复制到指定的目标位置， 如果父目录不存在，会自动创建
 	 * @param fullPath file full path
 	 * @throws IOException
 	 */
-	public File saveAs(String fullPath) throws IOException{
+	public File saveAs(String fullPath, Boolean deleteTempFile) throws IOException{
 		FileChannel in = null;
 		FileChannel out = null;
 		FileInputStream fin = null;
@@ -83,6 +83,10 @@ public class TempFile extends File{
 			if(fout != null) fout.close();
 			if(in != null) in.close();
 			if(out != null) out.close();
+			
+			if(deleteTempFile) {
+				this.delete();
+			}
 		}
 	}
 	
@@ -92,8 +96,8 @@ public class TempFile extends File{
 	 * @param name 文件名字符串
 	 * @throws IOException
 	 */
-	public void saveAs(String path, String name) throws IOException{
+	public void saveAs(String path, String name, Boolean deleteTempFile) throws IOException{
 		File file = new File(path);
-		saveAs(file.getAbsolutePath().replaceAll("\\\\", "/")+"/"+name);
+		saveAs(file.getAbsolutePath().replaceAll("\\\\", "/")+"/"+name, deleteTempFile);
 	}
 }

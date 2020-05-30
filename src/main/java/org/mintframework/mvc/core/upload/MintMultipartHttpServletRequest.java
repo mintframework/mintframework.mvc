@@ -125,7 +125,7 @@ public class MintMultipartHttpServletRequest extends HttpServletRequestWrapper {
 	 * @param name
 	 * @return
 	 */
-	public TempFile getPartFile(String name){
+	public MintTempFile getPartFile(String name){
 		if(name != null){
 			List<MultipartParameter> parts = fileParams.get(name);
 			if(parts!=null) {
@@ -142,11 +142,11 @@ public class MintMultipartHttpServletRequest extends HttpServletRequestWrapper {
 	 * @param name
 	 * @return
 	 */
-	public TempFile[] getPartFiles(String name){
+	public MintTempFile[] getPartFiles(String name){
 		if(name != null){
 			List<MultipartParameter> files = fileParams.get(name);
 			if(files == null) return null;
-			TempFile[] tfs = new TempFile[files.size()];
+			MintTempFile[] tfs = new MintTempFile[files.size()];
 			for(int i=0; i<files.size(); i++) {
 				tfs[i] = files.get(i).getTempFile();
 			}

@@ -23,7 +23,7 @@ import javax.servlet.http.HttpSession;
 import org.mintframework.mvc.annotation.UploadConfig;
 import org.mintframework.mvc.annotation.Required;
 import org.mintframework.mvc.converter.ParameterConverterFactory;
-import org.mintframework.mvc.core.upload.TempFile;
+import org.mintframework.mvc.core.upload.MintTempFile;
 
 /**
  * Internal class which holds object instance, method and arguments' types.
@@ -206,13 +206,13 @@ class APIContext {
 				} else {
 					injector = new ParameterInjector(i, clazz, argumentNames.get(i), true, String.class, String.class);
 				}
-			} else if(clazz.equals(TempFile.class) || clazz.equals(TempFile[].class) || clazz.equals(File.class) || clazz.equals(File[].class)) { //获取文件上传配置
+			} else if(clazz.equals(MintTempFile.class) || clazz.equals(MintTempFile[].class) || clazz.equals(File.class) || clazz.equals(File[].class)) { //获取文件上传配置
 				isInitMulti = true;
 				UploadConfig uinfo = param.getAnnotation(UploadConfig.class);
 				UploadParamInfo upinfo = null;
-				if(clazz.equals(TempFile.class) || clazz.equals(File.class)) {
+				if(clazz.equals(MintTempFile.class) || clazz.equals(File.class)) {
 					upinfo = new UploadParamInfo(uinfo.limitSize(), i, 0);
-				} else if(clazz.equals(TempFile[].class) || clazz.equals(File[].class)) {
+				} else if(clazz.equals(MintTempFile[].class) || clazz.equals(File[].class)) {
 					upinfo = new UploadParamInfo(uinfo.limitSize(), i, 1);
 				}
 				uploadConfigs.put(argumentNames.get(i), upinfo);

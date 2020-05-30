@@ -20,7 +20,7 @@ public class DefaultMultipartParameter implements MultipartParameter{
 	static Logger logger = Logger.getLogger(MultipartParameter.class.getName());
 	
 	boolean isFile 			= false;
-	TempFile 	tempFile 		= null;
+	MintTempFile 	tempFile 		= null;
 	
 	String	name			= null;
 	String	filename		= null;
@@ -100,7 +100,7 @@ public class DefaultMultipartParameter implements MultipartParameter{
 	}
 
 	@Override
-	public TempFile getTempFile() {
+	public MintTempFile getTempFile() {
 		return tempFile;
 	}
 

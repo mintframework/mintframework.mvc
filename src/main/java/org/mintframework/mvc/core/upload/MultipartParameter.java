@@ -25,7 +25,7 @@ public interface  MultipartParameter extends Part {
 	 * 获取临时文件
 	 * @return
 	 */
-	public TempFile getTempFile();
+	public MintTempFile getTempFile();
 	
 	/**
 	 * 获取客户端上传文件的文件名

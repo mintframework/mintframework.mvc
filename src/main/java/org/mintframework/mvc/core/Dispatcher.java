@@ -3,6 +3,7 @@ package org.mintframework.mvc.core;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -171,12 +172,30 @@ class Dispatcher {
 		this.urlMapMap.put("delete", ad.deleteUrlMap);
 		this.urlMapMap.put("options", ad.optionsUrlMap);
 		
-		this.matchersMap.put("get", ad.getUrlMap.keySet().toArray(new UrlMatcher[ad.getUrlMap.size()]));
-		this.matchersMap.put("put", ad.putUrlMap.keySet().toArray(new UrlMatcher[ad.putUrlMap.size()]));
-		this.matchersMap.put("post", ad.postUrlMap.keySet().toArray(new UrlMatcher[ad.postUrlMap.size()]));
-		this.matchersMap.put("head", ad.headUrlMap.keySet().toArray(new UrlMatcher[ad.headUrlMap.size()]));
-		this.matchersMap.put("delete", ad.deleteUrlMap.keySet().toArray(new UrlMatcher[ad.deleteUrlMap.size()]));
-		this.matchersMap.put("options", ad.optionsUrlMap.keySet().toArray(new UrlMatcher[ad.optionsUrlMap.size()]));
+		UrlMatcher[] ms = ad.getUrlMap.keySet().toArray(new UrlMatcher[ad.getUrlMap.size()]);
+		Arrays.sort(ms);
+		this.matchersMap.put("get", ms);
+		
+		ms = ad.putUrlMap.keySet().toArray(new UrlMatcher[ad.putUrlMap.size()]);
+		Arrays.sort(ms);
+		this.matchersMap.put("put", ms);
+		
+		ms = ad.postUrlMap.keySet().toArray(new UrlMatcher[ad.postUrlMap.size()]);
+		Arrays.sort(ms);
+		this.matchersMap.put("post", ms);
+		
+		ms = ad.headUrlMap.keySet().toArray(new UrlMatcher[ad.headUrlMap.size()]);
+		Arrays.sort(ms);
+		this.matchersMap.put("head", ms);
+		
+		ms = ad.deleteUrlMap.keySet().toArray(new UrlMatcher[ad.deleteUrlMap.size()]);
+		Arrays.sort(ms);
+		this.matchersMap.put("delete", ms);
+		
+		ms = ad.optionsUrlMap.keySet().toArray(new UrlMatcher[ad.optionsUrlMap.size()]);
+		Arrays.sort(ms);
+		this.matchersMap.put("options", ms);
+		
 		log.info("end matching url ");
 		
 		for(Entry<String, UrlMatcher[]> m : this.matchersMap.entrySet()) {

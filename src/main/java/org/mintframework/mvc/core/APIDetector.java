@@ -26,7 +26,7 @@ class APIDetector {
 	protected Map<UrlMatcher, APIContext> postUrlMap 	= new HashMap<UrlMatcher, APIContext>();
 	protected Map<UrlMatcher, APIContext> headUrlMap 	= new HashMap<UrlMatcher, APIContext>();
 	protected Map<UrlMatcher, APIContext> deleteUrlMap 	= new HashMap<UrlMatcher, APIContext>();
-	protected Map<UrlMatcher, APIContext> optionsUrlMap 	= new HashMap<UrlMatcher, APIContext>();
+	protected Map<UrlMatcher, APIContext> optionsUrlMap = new HashMap<UrlMatcher, APIContext>();
 	
 	protected Set<ModuleConfig> modules = new HashSet<ModuleConfig>();
 	
@@ -75,7 +75,7 @@ class APIDetector {
 					UrlMatcher 	matcher = new UrlMatcher(url, apiMethod);
 					/*如果pattern为空，则说明该api方法无法被访问到*/
 					if(matcher.pattern != null){
-						log.info("Mapping url '" + matcher.url + "' to method '" + apiMethod.toGenericString() + "'.");
+						log.info("Mapping url '" + matcher.url + "' to method '" + apiMethod.toGenericString() + "' with matchRank = "+matcher.matchRank+".");
 						service = apiMethod.getAnnotation(ApiServices.class);
 						List<String> argNames = GetArgumentName.getArgumentNames(apiMethod);
 						

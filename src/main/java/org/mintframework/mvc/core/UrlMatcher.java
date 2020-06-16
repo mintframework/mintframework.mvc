@@ -20,7 +20,7 @@ import org.mintframework.mvc.util.GetArgumentName;
  * @date 2015年3月13日 下午9:12:42
  *
  */
-final class UrlMatcher {
+final class UrlMatcher implements Comparable<UrlMatcher> {
 	static final String[] EMPTY_STRINGS = new String[0];
 	static final String SAFE_CHARS = "/$-_.+!*'(),";
 	private Logger log = Logger.getLogger(this.getClass().getName());
@@ -31,7 +31,12 @@ final class UrlMatcher {
 	final Pattern pattern;
 	final int[] urlArgumentOrder;
 	final String[] urlArgumentNames;
-	String holder = "。。！！！！······~~~~~~————￥￥￥。。‘’‘“”“、、、？？？";
+	
+	/**
+	 * 匹配权重，数字越大，匹配优先级越低
+	 */
+	final int matchRank;
+	
 
 	/**
 	 * Build UrlMatcher by given url like "/blog/{name}/{id}".
@@ -41,6 +46,9 @@ final class UrlMatcher {
 	 */
 	UrlMatcher(String url, Method actMethod) {
 		List<String> argNames = GetArgumentName.getArgumentNames(actMethod);
+		
+		//url包含的正则数，用以对匹配规则进行排序，正则越多，匹配越不精确，排序越靠后
+		int regCount = 0;
 		
 		if(url.length()>0 && !url.startsWith("/")) {
 			url = "/"+url;
@@ -107,9 +115,9 @@ final class UrlMatcher {
 		if (checkIsActionMethod(actMethod)) {
 			matcher.reset();
 			StringBuffer sb = new StringBuffer();
-
 			sb.append("^");
 			while (matcher.find()) {
+				regCount ++;
 				Matcher m = urlParameterReg.matcher(matcher.group(0).replace("{", "").replace("}", ""));
 
 				if (m.matches()) {
@@ -124,17 +132,28 @@ final class UrlMatcher {
 			}
 			matcher.appendTail(sb);
 			String urlReg = sb.toString();
-			urlReg = urlReg.replace("/**", holder);
+			//TODO ??????
+			/*
+			 * urlReg = urlReg.replace("/**", holder); 
+			 * urlReg = urlReg.replace("/*", * "(/[^/]*)");
+			 * urlReg = urlReg.replace(holder, "(/[^/]+)*");
+			 */
+			urlReg = urlReg.replace("/**", "(/[^/]+)*");
 			urlReg = urlReg.replace("/*", "(/[^/]*)");
-			urlReg = urlReg.replace(holder, "(/[^/]+)*");
+			
+			regCount += queryStringOccurrenceNumber(urlReg, "(/[^/]+)*");
+			regCount += queryStringOccurrenceNumber(urlReg, "(/[^/]*)");
 			
 			/* "/user/name" 和 "/user/name/" 都可以匹配 */
 			if(urlReg.endsWith("/")) {
 				urlReg = urlReg.substring(0, urlReg.length()-1);
 			}
 			this.pattern = Pattern.compile(urlReg + "[/]?$");
+			
+			this.matchRank = regCount;
 		} else {
 			this.pattern = null;
+			this.matchRank = 0;
 		}
 	}
 
@@ -208,5 +227,19 @@ final class UrlMatcher {
 	@Override
 	public int hashCode() {
 		return url.hashCode();
+	}
+	
+	private static int queryStringOccurrenceNumber(String original,String find) {
+        int count = 0;
+        while (original.contains(find)) {
+            original = original.substring(original.indexOf(find) + find.length());
+            count ++;
+        }
+        return count;
+    }
+
+	@Override
+	public int compareTo(UrlMatcher um) {
+		return matchRank - um.matchRank;
 	}
 }

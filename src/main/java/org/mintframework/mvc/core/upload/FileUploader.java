@@ -93,7 +93,7 @@ public class FileUploader {
 		try {
 			//用到的所有局部变量，为了效率，所有不在循环体内声明
 			DefaultMultipartParameter currentPart = null;
-			MintTempFile tempFile;
+			MintUploadFile tempFile;
 			boolean isFile = false;
 			
 			boolean finish = false;
@@ -294,16 +294,16 @@ public class FileUploader {
 	 * @return
 	 * @throws IOException 
 	 */
-	static MintTempFile createTempFile(String basepath, String filename) throws IOException{
+	static MintUploadFile createTempFile(String basepath, String filename) throws IOException{
 		String suffix = "";
 		if(filename.indexOf(".")>-1){
 			suffix = filename.substring(filename.indexOf("."));
 		}
 		
-		MintTempFile tempFile = new MintTempFile(basepath, UUID.randomUUID().toString().replace("-", "")+suffix);
+		MintUploadFile tempFile = new MintUploadFile(basepath, UUID.randomUUID().toString().replace("-", "")+suffix);
 		tempFile.originalFileName = filename;
 		while(tempFile.exists()){
-			tempFile = new MintTempFile(basepath, UUID.randomUUID().toString().replace("-", ""));
+			tempFile = new MintUploadFile(basepath, UUID.randomUUID().toString().replace("-", ""));
 		}
 		try {
 			tempFile.getParentFile().mkdirs();

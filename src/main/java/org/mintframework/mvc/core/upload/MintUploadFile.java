@@ -12,22 +12,22 @@ import java.nio.channels.FileChannel;
  * @author LiangWei(cnliangwei@foxmail.com)
  * @date 2015年8月9日 下午15:30:43 
  */
-public class MintTempFile extends File{
+public class MintUploadFile extends File{
 	private static final long serialVersionUID = 1L;
 
-	public MintTempFile(URI uri) {
+	public MintUploadFile(URI uri) {
 		super(uri);
 	}
 
-	public MintTempFile(String parent, String child) {
+	public MintUploadFile(String parent, String child) {
 		super(parent, child);
 	}
 
-	public MintTempFile(String pathname) {
+	public MintUploadFile(String pathname) {
 		super(pathname);
 	}
 
-	public MintTempFile(File parent, String child) {
+	public MintUploadFile(File parent, String child) {
 		super(parent, child);
 	}
 	

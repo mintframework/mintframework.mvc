@@ -126,7 +126,7 @@ public class MintMultipartHttpServletRequest extends HttpServletRequestWrapper {
 	 * @return
 	 */
 	public MintUploadFile getPartFile(String name){
-		if(name != null){
+		if(name != null && fileParams != null){
 			List<MultipartParameter> parts = fileParams.get(name);
 			if(parts!=null) {
 				return parts.get(0).getTempFile();

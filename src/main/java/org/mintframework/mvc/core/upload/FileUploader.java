@@ -82,7 +82,7 @@ public class FileUploader {
 		//获取请求体的分隔符
 		for(String s : request.getHeader("Content-Type").split(";")){
 			if(s.indexOf("boundary=") > 0){
-				boundary = "--"+s.split("=")[1];
+				boundary = "--"+s.split("=")[1].replaceAll("\"", "").replaceAll("'", "");
 				break;
 			}
 		}
@@ -97,7 +97,7 @@ public class FileUploader {
 			boolean isFile = false;
 			
 			boolean finish = false;
-			String line = null, partInfo, mimeType = null;
+			String line = null, mimeType = null;
 			StringBuffer paramValue = new StringBuffer(512);
 			
 			byte[] readBuf = new byte[1024*10];
@@ -138,14 +138,29 @@ public class FileUploader {
 				//分析头部，分析分隔符
 				//还未读取到请参数结尾
 				line = new String(readBuf, 0, readLen);
+				
+				//头部开始
 				if(!line.startsWith(endBoundary)){
 					currentPart = new DefaultMultipartParameter();
-					readLen = inputStream.readLine(readBuf, 0, readBuf.length);
-					partInfo = new String(readBuf, 0, readLen);
-					Map<String, String> info = parsePartInfo(partInfo, null);
-					if(info.get("name") == null || "".equals(info.get("name"))){
-						logger.warning("Multimedia requests cannot be resolved");
-						break;
+					
+					//有些头部信息是换行的，只有读到分隔符才停止
+					//已跳过描述头和内容之间的换行符
+					Map<String, String> info = new HashMap<>();
+					String str;
+					do {
+						readLen = inputStream.readLine(readBuf, 0, readBuf.length);
+						str = new String(readBuf, 0, readLen);
+						if(("\r\n".equals(str))) {
+							break;
+						} else {
+							info.putAll(parsePartInfo(new String(readBuf, 0, readLen)));
+						}
+					} while(true);
+					
+					/* 无名就无名，不管他 */
+					if(info.get("name") == null){
+						logger.warning("Unnamed parameters");
+						info.put("name", "");
 					}
 					currentPart.name = info.get("name");
 					/*文件头部*/
@@ -158,10 +173,10 @@ public class FileUploader {
 						} else {
 							currentPart.filename = fileName;
 						}
-						partInfo =  new String(readBuf, 0, inputStream.readLine(readBuf, 0, readBuf.length));
+						
 						/*文件mimetype*/
-						if(partInfo.startsWith("Content-Type: ")){
-							mimeType = partInfo.split(":")[1].trim();
+						if(info.get("Content-Type") != null){
+							mimeType = info.get("Content-Type");
 							if("".equals(mimeType)){
 								logger.warning("Multimedia requests cannot be resolved");
 								break;
@@ -186,8 +201,10 @@ public class FileUploader {
 				} else {
 					finish = true;
 				}
+				
 				//跳过描述头和内容之间的换行符
-				inputStream.readLine(readBuf, 0, 3);
+				//readLen = inputStream.readLine(readBuf, 0, readBuf.length);
+				
 				 // 为了性能，以下循环尽量不生成垃圾变量，逻辑较强，可读性较差
 				if(isFile){
 					//解析文件内容
@@ -273,16 +290,19 @@ public class FileUploader {
 	 * @param split key[split]value 的分隔符，默认是";"
 	 * @return
 	 */
-	static Map<String, String>parsePartInfo(String info, String split){
+	static Map<String, String>parsePartInfo(String info){
 		if(info == null || "".equals(info.trim())) return null;
 		
 		Map<String, String> partInfos = new HashMap<String, String>();
-		
-		if(split == null) split = "=";
 		for(String s : info.split(";")){
-			String kv[] = s.split(split);
+			String kv[] = s.split("=");
 			if(kv.length == 2){
 				partInfos.put(kv[0].trim(), kv[1].replace("\"", "").trim());
+			} else {
+				kv = s.split(":");
+				if(kv.length == 2) {
+					partInfos.put(kv[0].trim(), kv[1].replace("\"", "").trim());
+				}
 			}
 		}
 		

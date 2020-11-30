@@ -146,7 +146,6 @@ class APIDetector {
 	private boolean isActionMethod(Method method) {
 		/*静态方法不是action方法*/
 		if (Modifier.isStatic(method.getModifiers())) {
-			warnInvalidActionMethod(method, "method is static.");
 			return false;
 		}
 		
@@ -157,10 +156,5 @@ class APIDetector {
 		}
 		
 		return true;
-	}
-
-	//log warning message of invalid action method:
-	private void warnInvalidActionMethod(Method m, String string) {
-		log.warning("Invalid Action method '" + m.toGenericString() + "': " + string);
 	}
 }

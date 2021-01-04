@@ -182,11 +182,14 @@ final class UrlMatcher implements Comparable<UrlMatcher> {
 		/*
 		 * url参数必须为基础类型，比如int, long etc. 非url参数不许为基础类型。这主要是为了防止 参数空指针的问题
 		 */
+		/**
+		 * TODO
 		for (Class<?> type : argTypes) {
 			if (type != null && type.isPrimitive()) {
-				throw new ConfigException(method.toGenericString()+ "除了uri参数之外，所有action方法参数都不能是基础类型");
+				log.warning(method.toGenericString()+ "除了uri参数之外，所有action方法参数都不能是基础类型");
 			}
 		}
+		**/
 		return true;
 	}
 

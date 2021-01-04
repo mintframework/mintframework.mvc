@@ -108,17 +108,7 @@ class APIContext {
 		this.api 				= api;
 		
 		Annotation[][] ans = apiMethod.getParameterAnnotations();
-		this.requires = new boolean[argumentClasses.length];
 		
-		for(int i=0; i<ans.length; i++){
-			for(Annotation a : ans[i]){
-				if(a instanceof Required){
-					requires[i] = true;
-				} else {
-					requires[i] = false;
-				}
-			}
-		}
 		/*取消虚拟机安全检查，大幅提高方法调用效率*/
 		this.apiMethod.setAccessible(true);
 		
@@ -223,6 +213,21 @@ class APIContext {
 				keys = injector.getKeys();
 				for(String key : keys){
 					injectorsMap.put(key, injector);
+				}
+			}
+		}
+		
+		this.requires = new boolean[argumentClasses.length];
+		for(int i=0; i<ans.length; i++){
+			for(Annotation a : ans[i]){
+				if(a instanceof Required){
+					if(argumentClasses[i].isPrimitive()) {
+						new ConfigException(apiMethod.toGenericString()+ ":" + Required.class.getName() + " 对基础类型无效").printStackTrace();
+					} else {
+						requires[i] = true;
+					}
+				} else {
+					requires[i] = false;
 				}
 			}
 		}

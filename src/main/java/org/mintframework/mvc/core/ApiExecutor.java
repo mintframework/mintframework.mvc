@@ -151,7 +151,7 @@ class ApiExecutor {
 				request = multiR;
 			}
 		}
-
+		
 		/* apply interceptor chain */
 		InterceptorChainImpl interceptorChain = null;
 		if (api.interceptors != null) {
@@ -187,13 +187,13 @@ class ApiExecutor {
 			}
 		}
 
+		
 		// 有效的请求
 		if ((interceptorChain == null || interceptorChain.isPass()) && (serviceChain == null || serviceChain.isPass())) {
 			if (api.apiContext != null) {
-				// 调用action方法方法的参数
-				Object[] arguments = initArguments(request, response, api);
-
 				try {
+					// 调用 api 方法方法的参数
+					Object[] arguments = initArguments(request, response, api);
 					// 调用action方法并处理action返回的结果
 					handleResult(request, response, executeApiMethod(api.apiContext, arguments), api.apiContext);
 				} catch (Exception e) {
@@ -204,6 +204,8 @@ class ApiExecutor {
 				//TODO
 				response.sendError(HttpServletResponse.SC_NOT_FOUND);
 			}
+		} else {
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST);
 		}
 	}
 
@@ -399,7 +401,7 @@ class ApiExecutor {
 		}
 		
 		// 初始化文件参数
-		if(api.apiContext.isMultipartApi) {
+		if(api.apiContext.isMultipartApi && request instanceof MintMultipartHttpServletRequest) {
 			MintMultipartHttpServletRequest r = (MintMultipartHttpServletRequest)request;
 			Iterator<?> itr = api.apiContext.uploadConfigs.entrySet().iterator();
 			Map.Entry<String, UploadParamInfo> entry = null;

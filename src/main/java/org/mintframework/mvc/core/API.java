@@ -17,10 +17,10 @@ class API {
 	final List<Service>			services;
 	
 	API(APIContext actionConfig, String[] urlParams, String uri, List<Interceptor> interceptors, List<Service> services){
-		this.apiContext 	= actionConfig;
-		this.urlParams 		= urlParams;
 		this.uri			= uri;
-		this.interceptors 	= interceptors;
 		this.services		= services;
+		this.urlParams 		= urlParams;
+		this.apiContext 	= actionConfig;
+		this.interceptors 	= interceptors;
 	}
 }

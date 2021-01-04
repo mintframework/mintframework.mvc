@@ -149,7 +149,7 @@ class APIDetector {
 			return false;
 		}
 		
-		/*没有Mapping 注解的不是action方法*/
+		/*没有API 注解的不是action方法*/
 		API mapping = method.getAnnotation(API.class);
 		if (mapping == null) {
 			return false;

@@ -29,7 +29,6 @@ import org.mintframework.mvc.core.upload.MintMultipartHttpServletRequest;
 import org.mintframework.mvc.renderer.ErrorRender;
 import org.mintframework.mvc.renderer.Renderer;
 import org.mintframework.mvc.renderer.TextRenderer;
-import org.mintframework.mvc.template.TemplateFactory;
 import org.mintframework.util.PropertiesMap;
 
 /**
@@ -77,19 +76,13 @@ class ApiExecutor {
 			try {
 				exceptionListener = (ExceptionListener) Class.forName(exHandler).getDeclaredConstructor().newInstance();
 			} catch (Exception e) {
-				log.warning("can not init custom exceptionListener");
+				log.warning("can not init custom exceptionListener:"+exHandler);
 				e.printStackTrace();
 			}
 		}
 		
 		if(exceptionListener == null) {
 			exceptionListener = new DefaultExceptionListener();
-		}
-
-		try {
-			initAll(config);
-		} catch (Exception e) {
-			throw new ServletException("Dispatcher init failed.", e);
 		}
 	}
 
@@ -136,100 +129,82 @@ class ApiExecutor {
 	 * @throws ServletException
 	 * @throws IOException
 	 */
-	void executeApi(HttpServletRequest request, HttpServletResponse response, API api)
-			throws ServletException, IOException {
+	void executeApi(HttpServletRequest request, HttpServletResponse response, API api) throws ServletException, IOException {
 		RequestContext.setActionContext(servletContext, request, response);
-
-		// 处理上传请求
-		if (api.apiContext != null) {
-			String contentType = request.getContentType();
-			if (contentType != null && contentType.indexOf("multipart/form-data") >= 0) {
-				// 避免“上传任意文件”
-				// 正在上传文件
-				DefaultMultipartParameter[] params = FileUploader.upload(api.apiContext.uploadConfigs, request, api.apiContext.isMultipartApi);
-				MintMultipartHttpServletRequest multiR = new MintMultipartHttpServletRequest(request, params);
-				request = multiR;
-			}
-		}
-		
-		/* apply interceptor chain */
-		InterceptorChainImpl interceptorChain = null;
-		if (api.interceptors != null) {
+		try {
+			// 处理上传请求
 			if (api.apiContext != null) {
-				interceptorChain = new InterceptorChainImpl(api.interceptors, api.apiContext.module,
-						api.apiContext.api);
-			} else {
-				interceptorChain = new InterceptorChainImpl(api.interceptors, null, null);
+				String contentType = request.getContentType();
+				if (contentType != null && contentType.indexOf("multipart/form-data") >= 0) {
+					// 避免“上传任意文件”
+					// 正在上传文件
+					DefaultMultipartParameter[] params = FileUploader.upload(api.apiContext.uploadConfigs, request, api.apiContext.isMultipartApi);
+					MintMultipartHttpServletRequest multiR = new MintMultipartHttpServletRequest(request, params);
+					request = multiR;
+				}
 			}
+			
+			/* apply interceptor chain */
+			InterceptorChainImpl interceptorChain = null;
+			if (api.interceptors != null) {
+				if (api.apiContext != null) {
+					interceptorChain = new InterceptorChainImpl(api.interceptors, api.apiContext.module,
+							api.apiContext.api);
+				} else {
+					interceptorChain = new InterceptorChainImpl(api.interceptors, null, null);
+				}
 
-			try {
-				interceptorChain.doInterceptor(RequestContext.getActionContext());
-			} catch (Exception e) {
-				RequestContext.removeActionContext();
-				handleException(request, response, e);
-			}
-		}
-
-		// apply service chain
-		ServiceChainImpl serviceChain = null;
-		if (api.services != null && (interceptorChain == null || interceptorChain.isPass())) {
-			if (api.apiContext != null) {
-				serviceChain = new ServiceChainImpl(api.services, api.apiContext.module, api.apiContext.api);
-			} else {
-				serviceChain = new ServiceChainImpl(api.services, null, null);
-			}
-
-			try {
-				serviceChain.doService(RequestContext.getActionContext());
-			} catch (Exception e) {
-				RequestContext.removeActionContext();
-				handleException(request, response, e);
-			}
-		}
-
-		
-		// 有效的请求
-		if ((interceptorChain == null || interceptorChain.isPass()) && (serviceChain == null || serviceChain.isPass())) {
-			if (api.apiContext != null) {
 				try {
-					// 调用 api 方法方法的参数
-					Object[] arguments = initArguments(request, response, api);
-					// 调用action方法并处理action返回的结果
-					handleResult(request, response, executeApiMethod(api.apiContext, arguments), api.apiContext);
+					interceptorChain.doInterceptor(RequestContext.getActionContext());
 				} catch (Exception e) {
 					RequestContext.removeActionContext();
 					handleException(request, response, e);
 				}
-			} else {
-				//TODO
-				response.sendError(HttpServletResponse.SC_NOT_FOUND);
 			}
-		} else {
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST);
-		}
-	}
 
-	/**
-	 * @param config
-	 */
-	void initAll(PropertiesMap config) {
-		initTemplateFactory(config);
-	}
+			// apply service chain
+			ServiceChainImpl serviceChain = null;
+			if (api.services != null && (interceptorChain == null || interceptorChain.isPass())) {
+				if (api.apiContext != null) {
+					serviceChain = new ServiceChainImpl(api.services, api.apiContext.module, api.apiContext.api);
+				} else {
+					serviceChain = new ServiceChainImpl(api.services, null, null);
+				}
 
-	/**
-	 * @param config
-	 */
-	private void initTemplateFactory(PropertiesMap config) {
-		String name = config.get("mint.mvc.template");
-		if (name == null) {
-			return;
-		}
-		Utils util = new Utils();
-		TemplateFactory tf = util.createTemplateFactory(name);
-		if(tf != null) {
-			tf.init(config);
-			log.info("Template factory '" + tf.getClass().getName() + "' init ok.");
-			TemplateFactory.setTemplateFactory(tf);
+				try {
+					serviceChain.doService(RequestContext.getActionContext());
+				} catch (Exception e) {
+					RequestContext.removeActionContext();
+					handleException(request, response, e);
+				}
+			}
+
+			
+			// 有效的请求
+			if ((interceptorChain == null || interceptorChain.isPass()) && (serviceChain == null || serviceChain.isPass())) {
+				if (api.apiContext != null) {
+					try {
+						// 调用 api 方法方法的参数
+						Object[] arguments = initArguments(request, response, api);
+						// 调用action方法并处理action返回的结果
+						handleResult(request, response, executeApiMethod(api.apiContext, arguments), api.apiContext);
+					} catch (Exception e) {
+						RequestContext.removeActionContext();
+						handleException(request, response, e);
+					}
+				} else {
+					//TODO
+					if(!response.isCommitted()) {
+						response.sendError(HttpServletResponse.SC_NOT_FOUND);
+					}
+				}
+			} else {
+				if(!response.isCommitted()) {
+					response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+				}
+			}
+		} catch(Exception e) {
+			handleException(request, response, e);
 		}
 	}
 
@@ -472,8 +447,8 @@ class ApiExecutor {
 	 * @throws ServletException
 	 * @throws IOException
 	 */
-	private void handleException(HttpServletRequest request, HttpServletResponse response, Exception ex)
-			throws ServletException, IOException {
+	private void handleException(HttpServletRequest request, HttpServletResponse response, Exception ex) throws ServletException, IOException {
+		
 		try {
 			exceptionListener.handle(request, response, ex);
 		} catch (ServletException e) {
